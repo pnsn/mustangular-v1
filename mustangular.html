@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+   <meta charset="UTF-8">
+   <!-- <html lang="en-US"> -->
+   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+   <script src="mustangular.js"></script>
+   <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
+</head>
+<body>
+
+<div ng-app="myApp" ng-controller="formCtrl">
+   <form novalidate ng-submit="submit(a)">
+    	<p>Networks:  <input type="text" ng-model="a.net"> {{a.net}} </p>
+      <p>Channels: <input type="text" ng-model="a.chan"> {{a.chan}} </p>
+      <p>Stations:  <input type="text" ng-model="a.sta"> {{a.sta}} </p>
+      <p>Locations:  <input type="text" ng-model="a.loc"> {{a.loc}} </p>
+      <p>Quality: <input type="text" ng-model="a.qual"> {{a.qual}} </p>
+      <button type="submit">Submit</button>
+      
+   </form>
+</div>
+
+<div>
+   
+</div>
+
+</body>
+</html>
