@@ -52,21 +52,47 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
     },
     combineLists: function(){
       // console.log("combine")
-      for(var i = 0; i < _metrics.length; i++){
+      
+
         for(var i = 0; i < _metrics.length; i++){
+          // console.log(i)
           var sta = $filter('filter')(_stations, {station: _metrics[i].sta}, true)[0];
-          _metrics[i].lat = sta.latitude;
-          _metrics[i].lng = sta.longitude;
-          _metrics[i].elev = sta.elevation;
-          
-          _combined[_metrics[i].sta] = { //+"_"+_metrics[i].chan
-            lat: parseFloat(_metrics[i].lat),
-            lng: parseFloat(_metrics[i].lng),
-            message: _metrics[i].value
+          var metric = _metrics[i];
+          metric.lat = sta.latitude;
+          metric.lng = sta.longitude;
+          metric.elev = sta.elevation;
+          if(_combined[metric.sta]){
+            var message = _combined[metric.sta].message;
+            if(message.indexOf(metric.chan)> -1){
+              // message = message.split(" ");
+              // var place = message.indexOf(metric.chan )> -1
+              // message.indexOf(metric.chan)> -1
+              // console.log(place)
+              var chan = metric.chan;
+              var re = new RegExp(chan + ":\\s{1}\\d{1,4}", 'g');
+              var s = message.match(re);
+              var max = 0;
+              for(var k = 0; k < s.length; k++){
+                var f = parseFloat(s[k].split(" ")[1]);
+                max = Math.max(max, f);
+              }
+              // Replace old value with higher value for the channel
+              // _combined[metric.sta].message 
+              console.log(max)
+              
+            } else {
+              _combined[metric.sta].message = message + "\n " + metric.chan + ": " + metric.value
+            }
+            
+          } else{
+            _combined[metric.sta] = { //+"_"+_metrics[i].chan
+              lat: parseFloat(metric.lat),
+              lng: parseFloat(metric.lng),
+              message: metric.chan + ": " + metric.value
+            }
           }
         }
-        // console.log(_metrics);
-      }
+      
     },
     getCombined: function(){
       return _combined;
@@ -131,7 +157,7 @@ app2.controller("SimpleMapController", [ '$scope', '$window', '$http', 'metricsL
     // console.log(metricsList.getStations());
     
   }, function error(response){
-    console.log(response);
+    // console.log(response);
   });
 
 
