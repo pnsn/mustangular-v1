@@ -4,14 +4,23 @@
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
    <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+   <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
    <script src="js/angular-leaflet-directive.js"></script>
    <script src="js/mustangular.js"></script>
    <!-- <link rel="stylesheet" type="text/css" href="mustangular.css"></link> -->
 </head>
 <body ng-app="myApp2" ng-controller="SimpleMapController">
-  <leaflet width="600px" height="800px" markers="markers">
+   <div ng-model="max">{{max}}</div>
+  <leaflet id="map" width="800px" height="800px" markers="markers" maxbounds="maxbounds"> <!--full screen map!-->
   </leaflet>
-
+   <div id="controls">
+     	<p>Max value:  <input type="text" ng-model="setMaxVal"> {{setMaxVal}} </p>
+      <p>Bin size:  <input type="text" ng-model="binSize"> {{binSize}} </p>
+      <p>{{maxValue}}</p>
+      <p>{{minValue}}</p>
+ <!--metrics: 5 of them? -->
+ <!--date selection -->
+   </div>
 </body>
 </html>
 
