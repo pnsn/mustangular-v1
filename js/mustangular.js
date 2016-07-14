@@ -51,15 +51,16 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
     var count = Object.keys(chans).length;
     for(var i = 0; i < count; i++){ //find the median within the station and most extreme of the channels
       var array = $filter('orderBy')(chans[Object.keys(chans)[i]]);
-      var mid = count/2+.5;
+      var mid = array.length/2+.5;
+      var val
       if(mid % 1 == 0){
+        val = array[mid];
         max = Math.max(max, array[mid]);
       } else {
+        val = (array[mid-.5]+array[mid-.5])/2
         max = Math.max(max, (array[mid-.5]+array[mid-.5])/2);
       }
-      
     }
-    console.log(max)
     return max;
   }
   
