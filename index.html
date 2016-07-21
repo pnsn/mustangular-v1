@@ -17,6 +17,9 @@
       <p>Station:  <input type="text" ng-model="a.sta"> {{a.sta}} </p>
       <p>Location:  <input type="text" ng-model="a.loc"> {{a.loc}} </p>
       <p>Quality: <input type="text" ng-model="a.qual"> {{a.qual}} </p>
+      <p>Start time: <input type="date" ng-model="a.timewindow.start" placeholder="yyyy-MM-ddTHH:mm:ss" max:'{{a.window.stop}}' > {{a.timerange.start | date:'yyyy-MM-ddTHH:mm:ss'}} </p>
+      <p>End time: <input type="date" ng-model="a.timewindow.stop" placeholder="yyyy-MM-ddTHH:mm:ss" min:'{{a.window.start}}'> {{a.timerange.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} </p>
+      
       <label for="metric">Metric: </label>
       <select id="metric" ng-model="a.metric">
          <option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</option>

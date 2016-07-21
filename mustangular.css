@@ -1,7 +1,52 @@
 #controls{
   float:left;
-  margin-left:10px;
+  width: 500px;
+/*  margin-left:5px;*/
 }
+
 #map{
   float:left;
+  margin: 5px;
+}
+
+li.included{
+  background-color: yellow;
+}
+
+.icon, .icon-outlier-high, .icon-outlier-low {
+  border-radius: 7px;
+  height: 7px;
+  width: 7px;
+  border: 1px solid black;
+}
+
+.icon-outlier-high {
+  background-color: purple;
+}
+.icon-outlier-low{
+  background-color: black;
+}
+
+.icon-key{
+  width:20px;
+  height:20px;
+  border: 1px solid black;
+}
+
+#key{
+  width: 500px;
+  float:left;
+  height:auto;
+}
+
+#key #colors {
+  border: 1px solid black;
+  width: 40px;
+  height:400px;
+  list-style:none;
+}
+
+#key #explanations {
+/*  float:right;*/
+  height:400px;
 }

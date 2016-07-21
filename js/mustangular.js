@@ -1,6 +1,6 @@
 //Form 
 var app = angular.module('myApp', []);
-app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $location, $http){
+app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $location, $http, $filter){
   
   $scope.metrics = [];
   $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=angular.callbacks._0", {cache:true}).success(function(data, status, headers, config){ 
@@ -20,8 +20,9 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   
   $scope.submit = function(params) {
     $scope.master = angular.copy(params);
-    // console.log(params);
-    var par = $httpParamSerializer(params);
+    // console.log(params.timewindow)
+    $scope.master.timewindow = params.timewindow.start && params.timewindow.stop ? $filter('date')(params.timewindow.start, 'yyyy-MM-ddTHH:mm:ss')+","+$filter('date')(params.timewindow.stop, 'yyyy-MM-ddTHH:mm:ss') : ''
+    var par = $httpParamSerializer($scope.master);
     $window.location.href = "/Mustangular/mustangular_map.html?" + par;
   }
 });
@@ -35,70 +36,178 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
   });
   
 })
+.factory('medianFinder', function($filter){
+  var _channels = {};
+  var _values = {
+    max: -1000,
+    min: 1000,
+    values: [],
+    count: 0
+  };
+    return {
+      findValues: function(metric){       
+        var keys = Object.keys(metric);
+        for (var i = 0; i < keys.length; i++){
+          var max = 0;
+          // console.log(metric[keys[i]].chans)
+          var chans = metric[keys[i]].chans;
+          var chanKeys = Object.keys(chans);
+          // console.log(chanKeys)
+          for(var j = 0; j < chanKeys.length; j++){
+
+            var array = $filter('orderBy')(chans[chanKeys[j]]);
+            var mid = array.length/2+.5;
+            var median;
+            if(mid % 1 == 0){
+              median = array[mid];
+            } else {
+              median = (array[mid-.5]+array[mid-.5])/2;
+            }
+            var first = chanKeys[j].charAt(0);
+            if(first == "B" || first == "E" || first == "H"){ //for now: only allow B*, H*, and E* channels
+              max = Math.max(max, median);
+            }
+            // console.log(chans[chanKeys[j]])
+            chans[chanKeys[j]].median = median;
+            
+          }
+          metric[keys[i]].value = max;
+          _values.values.push(max);
+          _channels[metric[keys[i]].sta] = chans;
+          _channels[metric[keys[i]].sta].max = max;
+          metric[keys[i]].chans = chans;
+
+        }
+        _values.values = $filter('orderBy')(_values.values);
+        _values = {
+          max: _values.values[_values.values.length-1],
+          min: _values.values[0],
+          count: _values.values.length,
+          values: _values.values
+        }
+        // console.log(_values)
+        return metric;
+        
+      },
+      getChannels: function(){
+        return _channels;
+      },
+      getValues: function(){
+        return _values;
+      }
+    }
+
+  // }
+})
 .service('iconColoring', function($filter){
-  var _max = -1000; //values get wiped out
-  var _min = 1000;
-  var _binCount = 3;
-  var _binWidth = (_max - _min) / _binCount;
+  var _edges = {max:-1000, min: 1000, count:0, values: []}
+  var _binning = {max:10, count:5, min: 0, width: 0, mid:7.5};
+  var _bins;
+  // var _icons = [];
   
-  var findBounds = function (){
+  this.updateMarkers = function(markers, stations){
+    for(var i = 0; i < Object.keys(markers).length; i++) {     
+      var m = markers[Object.keys(markers)[i]];
+      m.icon.html = this.getIcon(stations[Object.keys(markers)[i]].max);
+      markers[Object.keys(markers)[i]] = m;
+    }
+    return markers;
+  }
+  
+  this.intitalBinning = function(percentile){
+    var val = Math.round((percentile/100.00 * _edges.count));
+    this.setBinning({max:_edges.values[val]});
+    // this.makeBins();
+  }
+  
+  this.makeBins = function(){ //divICON!!!!!!!
+    _bins = []; 
+    var min =  _binning.min;
+    var rainbow = new Rainbow();
+    rainbow.setNumberRange(0, _binning.count-1);
+    rainbow.setSpectrum("1AF600","E3EA00", "DD0000");
+    for (var i = 0; i < _binning.count; i++){
+      max = min + _binning.width;
+      _bins.push({max:max, min: min, color:rainbow.colorAt(i)});
+      // if(_bins[i-1] == )
+      min = max;
+    }
     
   }
   
-  this.getValue = function(chans){
-    // console.log(station.chans)
-    var max = 0;
-    var count = Object.keys(chans).length;
-    for(var i = 0; i < count; i++){ //find the median within the station and most extreme of the channels
-      var array = $filter('orderBy')(chans[Object.keys(chans)[i]]);
-      var mid = array.length/2+.5;
-      var val
-      if(mid % 1 == 0){
-        val = array[mid];
-        max = Math.max(max, array[mid]);
-      } else {
-        val = (array[mid-.5]+array[mid-.5])/2
-        max = Math.max(max, (array[mid-.5]+array[mid-.5])/2);
-      }
-    }
-    return max;
+  this.getBins = function() {
+    return _bins;
   }
   
   this.getIcon = function(value){
-    var icon;
-    this.setMax(value);
-    this.setMin(value);
-    if(value > 100){
-      icon = "images/red.png"
-    } else if (value > 50){
-      icon = "images/yellow.png"
-    } else if (value){
-      icon = "images/green.png"
+    // var color = 'purple';
+    
+    if(value < _binning.min){
+      // console.log(_binning.min + "  " + value)
+      return "<div class='icon-outlier-low'></div>"
+    } else if (value > _binning.max){
+      return "<div class='icon-outlier-high'></div>"
     } else {
-      icon = "images/dot.png"
+      for(var i = 0; i < _binning.count; i++){
+        if((value >= _bins[i].min && value < _bins[i].max) || (i == _binning.count - 1 && value ==  Math.round(_bins[i].max))){
+          return "<div class='icon' style='background-color:#" + _bins[i].color + "'></div>"
+        }
+      }
     }
-    
-    return icon;
-    
   }
   
-  this.getMessage = function(station, value){
-    // console.log(station.chans)
-    
-    return "<ul>" + "<li>" + value+ "</li>"+ "<li>" + station.net + "</li>"+"</ul>"   
+  this.getMessage = function(station, channels){
+    // _edges.count += 1;
+    // console.log(value)
+    var string = "<ul>"
+    string += "<li> Station: " + station.sta + "</li>"
+    string += "<li> Value: " + station.value + "</li>"
+    string += "<li> Network: " + station.net + "</li>"
+    string += "<li> Channel (median value): <ul>"
+    for(var i = 0; i < Object.keys(channels).length; i++) {
+      if(Object.keys(channels)[i] != "max"){
+        var first = Object.keys(channels)[i].charAt(0);
+        
+        if(first == "B" || first == "E" || first == "H"){ //TODO: figure out why REGEX not working
+          string += "<li class='included'>";
+        } else {
+          string += "<li>";
+        }
+        string += Object.keys(channels)[i]+": "+ channels[Object.keys(channels)[i]].median+ "</li>"
+      } 
+    }
+    string += "</ul></li>"  
+    return string+"</ul>"   
   }
   
-  this.setMax = function(max){
-    _max = max;
+  this.setEdges = function(max, min){
+    _edges = {
+      max: Math.max(max, _edges.max),
+      min: Math.min(min, _edges.min)
+    }
   }
-  this.setMin = function(min){
-    _min = min;
+  
+  this.setValues = function(values){
+    _edges = values; 
   }
-  this.getMax = function(){
-    return _max;
+
+  this.getEdges = function(){
+    return _edges;
   }
-  this.getMin = function(){
-    return _min;
+  
+  this.setBinning = function(binning){
+    _binning = {
+      max: binning.max? binning.max : _binning.max,
+      min: binning.min? binning.min : _binning.min,
+      count: binning.count? binning.count : _binning.count, 
+    }
+    _binning.mid = (_binning.max-_binning.min)/2;
+    _binning.width = (_binning.max - _binning.min) / _binning.count;
+    this.makeBins();
+  }
+
+  this.Binning = function(){
+    return _binning;
   }
 })
 
@@ -168,7 +277,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
 
   
 
-app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring) {
+app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder) {
   angular.extend($scope, {
       markers: {
         
@@ -179,25 +288,24 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   });
   var params = $window.location.search;
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
-  var configs = '&timewindow=2016-05-30,2016-05-31' + '&output=jsonp&callback=angular.callbacks._0';
+  var configs ='&output=jsonp&callback=angular.callbacks._0'; //2016-05-30,2016-05-31
   
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
-    console.log(url + params + configs)
+    // console.log(params + configs)
     metricsList.setMetrics(data.measurements.data_latency);
-
     $scope.stations=[];
     var data;
     //net, sta, loc, chan, start, end, 
-    params = params.replace(/metric=\w*/ig,'')
+    params = params.replace(/(timewindow|metric)=[^&]*/ig,'')
     params = params.replace(/chan/ig,'cha')
+    // params = params.replace(/timewindow=*/ig,'')
     $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
       // console.log(response.data);
       data = response.data.split('\n'); //Oth is the header
       if(data[0].length > 0){
         var headers = data[0].split("#");
         headers = headers[1].split(" | ");
-        // console.log(headers);
-        console.log("in get")
+
         for (var i = 1; i < data.length; i++){
          // console.log(data.length-i)
           var station = data[i].split("|");
@@ -208,29 +316,41 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           $scope.stations.push(staObj);
           metricsList.setStations(staObj, station[1]+"_"+station[0]);
         }    
-        console.log("combine")
+        // console.log("combine");
         metricsList.combineLists();
-        var markers1 = metricsList.getCombined();
-        var markers2 = [];
-      
-        for(var i = 0; i < Object.keys(markers1).length; i++) {
-          var m = markers1[Object.keys(markers1)[i]];
-          var value = iconColoring.getValue(m.chans);
-          markers2[i]={
+        var metric = metricsList.getCombined();
+        var markers = [];
+        
+        metric = medianFinder.findValues(metric);
+        iconColoring.setValues(medianFinder.getValues());
+        
+        iconColoring.intitalBinning(95);
+        
+        var metricKeys = Object.keys(metric);
+        
+        for(var i = 0; i< metricKeys.length; i++){
+          var m =  metric[metricKeys[i]];
+          markers[metricKeys[i]]={
             lat: m.lat,
             lng: m.lng,
-            message: iconColoring.getMessage(m, value),
+            message: iconColoring.getMessage(m, medianFinder.getChannels()[m.sta]),
             icon: {
-              iconUrl: iconColoring.getIcon(value),
-              iconSize: [10, 10]
+              type:'div',
+              className: 'icon-plain',
+              // iconUrl: iconColoring.getIcon(m.value),
+              iconSize: null,
+              html:iconColoring.getIcon(m.value)
             }
+            
           }
-
         }
-
-        $scope.markers = markers2;
-        $scope.maxValue = iconColoring.getMax;
-        $scope.minValue = iconColoring.getMin;
+        $scope.icons = iconColoring.getBins();
+        $scope.binning = iconColoring.Binning();
+        $scope.edges = iconColoring.getEdges();
+        // console.log($scope.edges)
+        // iconColoring.calculateBins(medianFinder.getValues());
+        $scope.markers = markers;
+        
       }
     }, function error(response){
       // console.log(response);
@@ -238,8 +358,16 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
     // console.log(data + " : " + status)
   });
-
-
+  
+  $scope.updateBinningValues = function(){
+    // console.log("change")
+    // console.log("before updating binning: " + $scope.markers['BRAN'].icon.iconUrl)
+    iconColoring.setBinning($scope.binning);
+    // console.log("after updating binning: " + $scope.markers['BRAN'].icon.iconUrl)
+    $scope.markers = iconColoring.updateMarkers($scope.markers, medianFinder.getChannels());
+    $scope.icons = iconColoring.getBins();
+    // console.log("after updating markers: " + $scope.markers['BRAN'].icon.iconUrl)
+  }
 
   
   
