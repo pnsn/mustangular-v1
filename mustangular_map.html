@@ -6,9 +6,11 @@
    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
    <!-- <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.1/dist/leaflet.css" /> -->
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
+   <link rel="stylesheet" type="text/css" href="rzslider.css"></link>
    <script src="js/angular-leaflet-directive.js"></script>
    <script src="js/mustangular.js"></script>
    <script src="js/rainbowvis.js"></script>
+   <script src="js/rzslider.min.js"></script>
    <!-- <link rel="stylesheet" type="text/css" href="mustangular.css"></link> -->
 </head>
 <body ng-app="myApp2" ng-controller="SimpleMapController">
@@ -17,15 +19,21 @@
   </leaflet>
    <div id="controls">
       <p>Metric: {{metricNames}}</p>
+      <p>There are {{edges.count}} stations on the map.</p>
      	<p>Max binning value: <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}> Values above {{binning.max}} will be not be binned (displayed in purple)</p>
      	<p>Min binning value: <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}> Values below {{binning.min}} will be not be binned (displayed in black)</p>
       <p>Number of bins: <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1"> Values divided into {{binning.count}} bins</p>
       <p>Maximum metric value: {{edges.max}}</p>
       <p>Mininum metric value: {{edges.min}}</p>
-      <p>There are {{edges.count}} stations on the map.</p>
+
  <!--metrics: 5 of them? -->
  <!--date selection -->
+       
+      <rzslider rz-slider-model="binning.min"
+                rz-slider-high="binning.max"
+                rz-slider-options="slider.options"></rzslider>
    </div>
+   
    <div id="key">
       <!-- <h4> Key </h4> -->
       <table>

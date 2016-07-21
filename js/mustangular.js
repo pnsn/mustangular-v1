@@ -9,7 +9,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
       // console.log(data.metrics[i].name)
       // console.log(data.metrics[i].tables[0].columns[0])
       var keys = Object.keys(data.metrics[i].tables[0].columns[0])
-      console.log(data.metrics[i].tables[0].columns[0]["name"])
+      // console.log(data.metrics[i].tables[0].columns[0]["name"])
       if(data.metrics[i].tables[0].columns[0]["name"] == "value" && data.metrics[i].tables[0].columns[0]["sqlType"] != "TEXT" ){
         $scope.metrics.push( {
           "metric" : data.metrics[i].name,
@@ -18,7 +18,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
       }
 
     } 
-    console.log($scope.metrics)
+    // console.log($scope.metrics)
     
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
     // console.log(data + " : " + status)
@@ -37,7 +37,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
 
 
 //Map
-var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationProvider){
+var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function($locationProvider){
   $locationProvider.html5Mode({
     enabled:true,
     requireBase: false
@@ -55,7 +55,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
     return {
       findValues: function(metric){       
         var keys = Object.keys(metric);
-        console.log(metric)
+        // console.log(metric)
         for (var i = 0; i < keys.length; i++){
           var max = 0;
           // console.log(metric[keys[i]].chans)
@@ -114,7 +114,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
 })
 .service('iconColoring', function($filter){
   var _edges = {max:-1000, min: 1000, count:0, values: []}
-  var _binning = {max:10, count:5, min: 0, width: 0, mid:7.5};
+  var _binning = {max:10, count:5, min: 0, width: 2, mid:7.5};
   var _bins;
   // var _icons = [];
   
@@ -129,7 +129,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
   
   this.intitalBinning = function(percentile){
     var val = Math.round((percentile/100.00 * _edges.count));
-    this.setBinning({max:_edges.values[val]});
+    this.setBinning({max:_edges.values[val], min: _edges.min});
     // this.makeBins();
   }
   
@@ -209,12 +209,14 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
   }
   
   this.setBinning = function(binning){
+    // console.log("before " + binning.min)
     _binning = {
       max: binning.max? binning.max : _binning.max,
-      min: binning.min? binning.min : _binning.min,
+      min: binning.min || binning.min == 0? binning.min : _binning.min,
       count: binning.count? binning.count : _binning.count, 
     }
-    _binning.mid = (_binning.max-_binning.min)/2;
+    
+    // console.log("after: "+ _binning.min)
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     this.makeBins();
   }
@@ -299,6 +301,8 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           scrollWheelZoom: false
       }
   });
+
+
   var params = $window.location.search.replace(/&\w*=&/g, '&');
   params=params.replace(/&\w*=$/gm, ""); //strip out empty params
   params=params.replace(/\?\w*=&/gm, "?");
@@ -307,8 +311,12 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
     console.log(params + configs)
+    // console.log(data)
+    if(data.measurements[Object.keys(data.measurements)[0]].length <= 0){
+      console.log("no data")
+    }
     metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
-    $scope.metricNames = Object.keys(data.measurements)[0].replace('/_/g', ' ');
+    $scope.metricNames = Object.keys(data.measurements)[0];
     $scope.stations=[];
     // console.log(metricsList.getMetrics());
     var data;
@@ -368,7 +376,22 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
         // console.log($scope.edges)
         // iconColoring.calculateBins(medianFinder.getValues());
         $scope.markers = markers;
-        
+        $scope.slider = {
+            minValue: $scope.binning.min,
+            maxValue: $scope.binning.max,
+            options: {
+              floor: $scope.edges.min,
+              ceil: $scope.edges.max,
+              step: 1,
+              minRange: 1,
+              noSwitching: true,
+              // showTicks:,
+              onChange: function(){
+                $scope.updateBinningValues();
+              }
+            }
+        };
+
       }
     }, function error(response){
       // console.log(response);
@@ -378,17 +401,14 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   });
   
   $scope.updateBinningValues = function(){
-    // console.log("change")
-    // console.log("before updating binning: " + $scope.markers['BRAN'].icon.iconUrl)
     iconColoring.setBinning($scope.binning);
-    // console.log("after updating binning: " + $scope.markers['BRAN'].icon.iconUrl)
     $scope.markers = iconColoring.updateMarkers($scope.markers, medianFinder.getChannels());
     $scope.icons = iconColoring.getBins();
-    // console.log("after updating markers: " + $scope.markers['BRAN'].icon.iconUrl)
   }
+  
 
-  
-  
+
+
 });
 
 //Disable default debugging output on leaflet
