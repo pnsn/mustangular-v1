@@ -47,6 +47,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
     return {
       findValues: function(metric){       
         var keys = Object.keys(metric);
+        console.log(metric)
         for (var i = 0; i < keys.length; i++){
           var max = 0;
           // console.log(metric[keys[i]].chans)
@@ -59,14 +60,15 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
             var mid = array.length/2+.5;
             var median;
             if(mid % 1 == 0){
-              median = array[mid];
+              median = array[mid] ? array[mid] : 0;
             } else {
-              median = (array[mid-.5]+array[mid-.5])/2;
+              median = array[mid] ? (array[mid-.5]+array[mid-.5])/2 : 0;
             }
             var first = chanKeys[j].charAt(0);
             if(first == "B" || first == "E" || first == "H"){ //for now: only allow B*, H*, and E* channels
               max = Math.max(max, median);
             }
+            console.log(max)
             // console.log(chans[chanKeys[j]])
             chans[chanKeys[j]].median = median;
             
@@ -293,9 +295,10 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
     console.log(params + configs)
-    metricsList.setMetrics(data.measurements.data_latency); //TODO: allow other metrics by having a selector & multiple layers
+    metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
     $scope.metricNames = Object.keys(data.measurements)[0].replace('/_/g', ' ');
     $scope.stations=[];
+    // console.log(metricsList.getMetrics());
     var data;
     //net, sta, loc, chan, start, end, 
     params = params.replace(/(timewindow|metric)=[^&]*/ig,'')
@@ -321,6 +324,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
         // console.log("combine");
         metricsList.combineLists();
         var metric = metricsList.getCombined();
+        // console.log(metric)
         var markers = [];
         
         metric = medianFinder.findValues(metric);
