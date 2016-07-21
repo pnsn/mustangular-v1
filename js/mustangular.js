@@ -4,13 +4,21 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   
   $scope.metrics = [];
   $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=angular.callbacks._0", {cache:true}).success(function(data, status, headers, config){ 
-    
+          // console.log(data.metrics)
     for(var i = 0; i<data.metrics.length; i++){
-      $scope.metrics[i] = {
-        "metric" : data.metrics[i].name,
-        "title" : data.metrics[i].title
-      } 
+      // console.log(data.metrics[i].name)
+      // console.log(data.metrics[i].tables[0].columns[0])
+      var keys = Object.keys(data.metrics[i].tables[0].columns[0])
+      console.log(data.metrics[i].tables[0].columns[0]["name"])
+      if(data.metrics[i].tables[0].columns[0]["name"] == "value" && data.metrics[i].tables[0].columns[0]["sqlType"] != "TEXT" ){
+        $scope.metrics.push( {
+          "metric" : data.metrics[i].name,
+          "title" : data.metrics[i].title
+        });
+      }
+
     } 
+    console.log($scope.metrics)
     
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
     // console.log(data + " : " + status)
