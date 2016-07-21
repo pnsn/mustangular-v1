@@ -60,15 +60,18 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
             var mid = array.length/2+.5;
             var median;
             if(mid % 1 == 0){
-              median = array[mid] ? array[mid] : 0;
+              median = array[mid];
             } else {
-              median = array[mid] ? (array[mid-.5]+array[mid-.5])/2 : 0;
+              median = (array[mid-.5]+array[mid-.5])/2;
+            }
+            if(!median){
+              median = 0;
             }
             var first = chanKeys[j].charAt(0);
             if(first == "B" || first == "E" || first == "H"){ //for now: only allow B*, H*, and E* channels
               max = Math.max(max, median);
             }
-            console.log(max)
+            // console.log(max)
             // console.log(chans[chanKeys[j]])
             chans[chanKeys[j]].median = median;
             
