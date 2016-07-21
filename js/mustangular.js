@@ -290,6 +290,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   });
   var params = $window.location.search.replace(/&\w*=&/g, '&');
   params=params.replace(/&\w*=$/gm, ""); //strip out empty params
+  params=params.replace(/\?\w*=&/gm, "?");
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
   var configs ='&output=jsonp&callback=angular.callbacks._0'; //2016-05-30,2016-05-31
   
