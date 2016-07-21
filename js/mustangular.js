@@ -21,7 +21,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   $scope.submit = function(params) {
     $scope.master = angular.copy(params);
     // console.log(params.timewindow)
-    $scope.master.timewindow = params.timewindow.start && params.timewindow.stop ? $filter('date')(params.timewindow.start, 'yyyy-MM-ddTHH:mm:ss')+","+$filter('date')(params.timewindow.stop, 'yyyy-MM-ddTHH:mm:ss') : ''
+    $scope.master.timewindow = params.timewindow.start && params.timewindow.stop ? $filter('date')(params.timewindow.start, 'yyyy-MM-ddTHH:mm:ss')+","+$filter('date')(params.timewindow.stop, 'yyyy-MM-ddTHH:mm:ss') : null
     var par = $httpParamSerializer($scope.master);
     $window.location.href = "/Mustangular/mustangular_map.html?" + par;
   }
@@ -125,7 +125,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive'], function($locationPro
     var min =  _binning.min;
     var rainbow = new Rainbow();
     rainbow.setNumberRange(0, _binning.count-1);
-    rainbow.setSpectrum("1AF600","E3EA00", "DD0000");
+    rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
     for (var i = 0; i < _binning.count; i++){
       max = min + _binning.width;
       _bins.push({max:max, min: min, color:rainbow.colorAt(i)});
@@ -286,13 +286,15 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           scrollWheelZoom: false
       }
   });
-  var params = $window.location.search;
+  var params = $window.location.search.replace(/&\w*=&/g, '&');
+  params=params.replace(/&\w*=$/gm, ""); //strip out empty params
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
   var configs ='&output=jsonp&callback=angular.callbacks._0'; //2016-05-30,2016-05-31
   
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
-    // console.log(params + configs)
-    metricsList.setMetrics(data.measurements.data_latency);
+    console.log(params + configs)
+    metricsList.setMetrics(data.measurements.data_latency); //TODO: allow other metrics by having a selector
+    $scope.metricNames = Object.keys(data.measurements)[0].replace('/_/g', ' ');
     $scope.stations=[];
     var data;
     //net, sta, loc, chan, start, end, 

@@ -16,9 +16,10 @@
   <leaflet id="map" width="600px" height="800px" markers="markers"> <!--full screen map!-->
   </leaflet>
    <div id="controls">
+      <p>Metric: {{metricNames}}</p>
      	<p>Max binning value: <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}> Values above {{binning.max}} will be not be binned (displayed in purple)</p>
-     	<p>Min binning value: <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}> Values below {{binning.min}} will be not be binned (displayed in purple)</p>
-      <p>Bin size: <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1"> Values divided into {{binning.count}} bins</p>
+     	<p>Min binning value: <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}> Values below {{binning.min}} will be not be binned (displayed in black)</p>
+      <p>Number of bins: <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1"> Values divided into {{binning.count}} bins</p>
       <p>Maximum metric value: {{edges.max}}</p>
       <p>Mininum metric value: {{edges.min}}</p>
       <p>There are {{edges.count}} stations on the map.</p>
