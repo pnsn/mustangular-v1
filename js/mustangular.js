@@ -23,7 +23,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
     // console.log(params.timewindow)
     $scope.master.timewindow = params.timewindow.start && params.timewindow.stop ? $filter('date')(params.timewindow.start, 'yyyy-MM-ddTHH:mm:ss')+","+$filter('date')(params.timewindow.stop, 'yyyy-MM-ddTHH:mm:ss') : null
     var par = $httpParamSerializer($scope.master);
-    $window.location.href = "/Mustangular/mustangular_map.html?" + par;
+    $window.location.href = "/mustangular/mustangular_map.html?" + par;
   }
 });
 
@@ -293,7 +293,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
     console.log(params + configs)
-    metricsList.setMetrics(data.measurements.data_latency); //TODO: allow other metrics by having a selector
+    metricsList.setMetrics(data.measurements.data_latency); //TODO: allow other metrics by having a selector & multiple layers
     $scope.metricNames = Object.keys(data.measurements)[0].replace('/_/g', ' ');
     $scope.stations=[];
     var data;
