@@ -15,9 +15,9 @@
 </head>
 <body ng-app="myApp2" ng-controller="SimpleMapController">
    <div ng-model="max">{{max}}</div>
-  <leaflet id="map" width="600px" height="800px" markers="markers"> <!--full screen map!-->
-  </leaflet>
+   <leaflet id="map" width="600px" height="800px" markers="markers"> <!--full screen map!--> </leaflet>
    <div id="controls">
+      <button ng-click="goBack()"> Return to form</button>
       <p>Metric: {{metricNames}}</p>
       <p>There are {{edges.count}} stations on the map.</p>
      	<p>Max binning value: <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}> Values above {{binning.max}} will be not be binned (displayed in purple)</p>
@@ -26,9 +26,7 @@
       <p>Maximum metric value: {{edges.max}}</p>
       <p>Mininum metric value: {{edges.min}}</p>
 
- <!--metrics: 5 of them? -->
- <!--date selection -->
-       
+      <p>Slide to change binning values:</p>
       <rzslider rz-slider-model="binning.min"
                 rz-slider-high="binning.max"
                 rz-slider-options="slider.options"></rzslider>

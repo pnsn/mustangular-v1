@@ -1,5 +1,14 @@
 //Form 
 var app = angular.module('myApp', []);
+
+app.config(['$locationProvider', function($locationProvider) {
+        $locationProvider.html5Mode({
+          enabled:true,
+          requireBase: false
+        });
+    }]);
+
+
 app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $location, $http, $filter){
   
   $scope.metrics = [];
@@ -25,7 +34,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   });
 
   $scope.master = {};
-  
+
   $scope.submit = function(params) {
     $scope.master = angular.copy(params);
     // console.log(params.timewindow)
@@ -33,7 +42,24 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
     var par = $httpParamSerializer($scope.master);
     $window.location.href = "/mustangular/mustangular_map.html?" + par;
   }
+  
+  var params = $location.search();
+  var time = params.timewindow.split(",");
+  $scope.a = {
+    net: params.net,
+    chan: params.chan,
+    sta: params.sta,
+    loc: params.loc,
+    qual: params.qual,
+    timewindow: {
+      start: new Date(time[0]),
+      stop: new Date(time [1])
+    },
+    metric: params.metric
+  }
+  
 });
+
 
 
 //Map
@@ -230,7 +256,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   var _metrics = [];
   var _stations = [];
   var _combined = [];
-  
+  var _latlons = [];
   return{
     getMetrics: function(){
       return _metrics;
@@ -247,6 +273,9 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
     getStations: function(){
       return _stations;
     },
+    getLatLngs: function(){
+      return _latlons;
+    },
     combineLists: function(){
       // console.log("combine")
         for(var i = 0; i < _metrics.length; i++){
@@ -256,7 +285,6 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
             metric.lat = sta.latitude; //print out table of failed stations --> no data
             metric.lng = sta.longitude;
             metric.elev = sta.elevation;
-            
             if(_combined[metric.sta]){
               // _combined[metric.sta].value = Math.max(_combined[metric.sta].value, metric.value)
               if(_combined[metric.sta].chans[metric.chan]){
@@ -273,6 +301,9 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
                 chans:{}
                 // focus: true
               }
+              
+              _latlons.push([parseFloat(metric.lat), parseFloat(metric.lng)])
+              // console.log(_latlons)
               // console.log(metric.chan)
               _combined[metric.sta].chans[metric.chan] = [metric.value];
               // console.log(_combined[metric.sta])
@@ -292,7 +323,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
 
   
 
-app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder) {
+app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder, leafletBoundsHelpers, leafletData) {
   angular.extend($scope, {
       markers: {
         
@@ -385,13 +416,40 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
               step: 1,
               minRange: 1,
               noSwitching: true,
-              // showTicks:,
+              translate: function(value, sliderId, label) {
+                switch (label) {
+                  case 'model':
+                    return '<b>min: </b>' + value;
+                  case 'high':
+                    return '<b>max: </b>' + value;
+                  default:
+                    return '' + value
+                }
+              },
               onChange: function(){
                 $scope.updateBinningValues();
               }
             }
         };
+        leafletData.getMap();
+        
+        var latlngs = metricsList.getLatLngs();
+        var bounds = L.latLngBounds(latlngs)
+        console.log(bounds)
+        // var bounds = leafletBoundsHelpers.createBoundsFromArray(latlngs);
+        //
+//         var map = leafletData.getMap();
+//         map.fitBounds(bounds);
+//         // angular.extend($scope, {
+// //           bounds: bounds
+// //         });
+        leafletData.getMap().then(function(map) {
+                map.fitBounds(bounds);
+        });
 
+        
+      } else {
+        //no data appears
       }
     }, function error(response){
       // console.log(response);
@@ -407,7 +465,13 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   }
   
 
-
+  $scope.goBack = function(){
+    //grab edited params
+    var params = $window.location.search.replace(/&\w*=&/g, '&');
+    params=params.replace(/&\w*=$/gm, ""); //strip out empty params
+    params=params.replace(/\?\w*=&/gm, "?");
+    window.location = "/Mustangular" + params;
+  }
 
 });
 
