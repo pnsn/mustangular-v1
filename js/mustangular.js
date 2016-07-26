@@ -55,8 +55,8 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   }
   
   //Spoof UTC in datetime input because js converts from UTC to local automatically
-  time.start = addMinutes(time.start, time.start.getTimezoneOffset());
-  time.stop = addMinutes(time.stop, time.stop.getTimezoneOffset());
+  time.start = time.start ? addMinutes(time.start, time.start.getTimezoneOffset()) : null;
+  time.stop = time.stop ?  addMinutes(time.stop, time.stop.getTimezoneOffset()) : null;
   
   $scope.a = {
     net: params.net,
