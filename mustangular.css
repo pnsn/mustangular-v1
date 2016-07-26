@@ -13,6 +13,10 @@ li.included{
   background-color: yellow;
 }
 
+.error {
+  color:red;
+}
+
 .icon, .icon-outlier-high, .icon-outlier-low {
   border-radius: 7px;
   height: 7px;

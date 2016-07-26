@@ -18,26 +18,28 @@
    <leaflet id="map" width="600px" height="800px" markers="markers"> <!--full screen map!--> </leaflet>
    <div id="controls">
       <button ng-click="goBack()"> Return to form</button>
-      <p>Metric: {{metricNames}}</p>
-      <p>There are {{edges.count}} stations on the map.</p>
-     	<p>Max binning value: <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}> Values above {{binning.max}} will be not be binned (displayed in purple)</p>
-     	<p>Min binning value: <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}> Values below {{binning.min}} will be not be binned (displayed in black)</p>
-      <p>Number of bins: <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1"> Values divided into {{binning.count}} bins</p>
-      <p>Maximum metric value: {{edges.max}}</p>
-      <p>Mininum metric value: {{edges.min}}</p>
-
-      <p>Slide to change binning values:</p>
+      <p class="error" ng-show="!error.data">{{error.noData}}</p>
+      <div ng-show="error.data">
+         <p>Metric: {{metricNames}}</p>
+         <p>There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.</p>
+        	<p>Max binning value: <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}> Values above {{binning.max}} will be not be binned (displayed in purple)</p>
+        	<p>Min binning value: <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}> Values below {{binning.min}} will be not be binned (displayed in black)</p>
+         <p>Number of bins: <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1"> Values divided into {{binning.count}} bins</p>
+         <p>Maximum metric value: {{edges.max}}</p>
+         <p>Minimum metric value: {{edges.min}}</p>
+      </div>
+      <p>Slide to change binning values: [test feature]</p>
       <rzslider rz-slider-model="binning.min"
                 rz-slider-high="binning.max"
                 rz-slider-options="slider.options"></rzslider>
    </div>
    
-   <div id="key">
+   <div id="key" ng-show="error.data">
       <!-- <h4> Key </h4> -->
       <table>
          <th> Key </th>
          <tr ng-repeat="icon in icons">
-            <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td><td>{{icon.min | number:1}}  - {{icon.max | number:1}}</td>
+            <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td><td>{{icon.min | number:1}}  to {{icon.max | number:1}}</td>
          </tr>
       </table>
    </div>

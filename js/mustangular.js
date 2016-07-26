@@ -43,8 +43,21 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
     $window.location.href = "/mustangular/mustangular_map.html?" + par;
   }
   
+  function addMinutes(date, minutes) {
+      return new Date(date.getTime() + minutes*60000);
+  }
+  
   var params = $location.search();
-  var time = params.timewindow.split(",");
+  // var time = 
+  var time = {
+    start: params.timewindow? new Date(params.timewindow.split(",")[0]) : null,
+    stop: params.timewindow? new Date(params.timewindow.split(",")[1]) : null,
+  }
+  
+  //Spoof UTC in datetime input because js converts from UTC to local automatically
+  time.start = addMinutes(time.start, time.start.getTimezoneOffset());
+  time.stop = addMinutes(time.stop, time.stop.getTimezoneOffset());
+  
   $scope.a = {
     net: params.net,
     chan: params.chan,
@@ -52,8 +65,8 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
     loc: params.loc,
     qual: params.qual,
     timewindow: {
-      start: new Date(time[0]),
-      stop: new Date(time [1])
+      start: time.start,
+      stop: time.stop
     },
     metric: params.metric
   }
@@ -83,7 +96,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
         var keys = Object.keys(metric);
         // console.log(metric)
         for (var i = 0; i < keys.length; i++){
-          var max = 0;
+          var max = -1000;
           // console.log(metric[keys[i]].chans)
           var chans = metric[keys[i]].chans;
           var chanKeys = Object.keys(chans);
@@ -196,8 +209,6 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   }
   
   this.getMessage = function(station, channels){
-    // _edges.count += 1;
-    // console.log(value)
     var string = "<ul>"
     string += "<li> Station: " + station.sta + "</li>"
     string += "<li> Value: " + station.value + "</li>"
@@ -322,7 +333,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
 // add service to allow sharing of stations between controllers
 
   
-
+//TODO: split the current controller into a map controller and a controls controller for simplification
 app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder, leafletBoundsHelpers, leafletData) {
   angular.extend($scope, {
       markers: {
@@ -340,122 +351,141 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
   var configs ='&output=jsonp&callback=angular.callbacks._0'; //2016-05-30,2016-05-31
   
+  $scope.error = {
+    data: false,
+    noData: "Waiting for data."
+  }
+  
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
-    console.log(params + configs)
+    console.log(url+params + configs)
     // console.log(data)
-    if(data.measurements[Object.keys(data.measurements)[0]].length <= 0){
-      console.log("no data")
-    }
-    metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
-    $scope.metricNames = Object.keys(data.measurements)[0];
-    $scope.stations=[];
-    // console.log(metricsList.getMetrics());
-    var data;
-    //net, sta, loc, chan, start, end, 
-    params = params.replace(/(timewindow|metric)=[^&]*/ig,'')
-    params = params.replace(/chan/ig,'cha')
-    // params = params.replace(/timewindow=*/ig,'')
-    $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
-      // console.log(response.data);
-      data = response.data.split('\n'); //Oth is the header
-      if(data[0].length > 0){
-        var headers = data[0].split("#");
-        headers = headers[1].split(" | ");
-
-        for (var i = 1; i < data.length; i++){
-         // console.log(data.length-i)
-          var station = data[i].split("|");
-          var staObj = {};   
-          for (var j = 0; j < station.length; j++){
-            staObj[headers[j].trim().toLowerCase()]=station[j];
-          }
-          $scope.stations.push(staObj);
-          metricsList.setStations(staObj, station[1]+"_"+station[0]);
-        }    
-        // console.log("combine");
-        metricsList.combineLists();
-        var metric = metricsList.getCombined();
-        // console.log(metric)
-        var markers = [];
-        
-        metric = medianFinder.findValues(metric);
-        iconColoring.setValues(medianFinder.getValues());
-        
-        iconColoring.intitalBinning(95);
-        
-        var metricKeys = Object.keys(metric);
-        
-        for(var i = 0; i< metricKeys.length; i++){
-          var m =  metric[metricKeys[i]];
-          markers[metricKeys[i]]={
-            lat: m.lat,
-            lng: m.lng,
-            message: iconColoring.getMessage(m, medianFinder.getChannels()[m.sta]),
-            icon: {
-              type:'div',
-              className: 'icon-plain',
-              // iconUrl: iconColoring.getIcon(m.value),
-              iconSize: null,
-              html:iconColoring.getIcon(m.value)
-            }
-            
-          }
+    if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
+      metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
+    
+      //Prettify the metric name
+      var name = Object.keys(data.measurements)[0].split("_");
+      var metricName = "";
+      for(var n = 0; n < name.length; n++){
+        if (n ==0 ) {
+          metricName += name[n].charAt(0).toUpperCase() + name[n].slice(1);
+        } else {
+          metricName += " " + name[n];
         }
-        $scope.icons = iconColoring.getBins();
-        $scope.binning = iconColoring.Binning();
-        $scope.edges = iconColoring.getEdges();
-        // console.log($scope.edges)
-        // iconColoring.calculateBins(medianFinder.getValues());
-        $scope.markers = markers;
-        $scope.slider = {
-            minValue: $scope.binning.min,
-            maxValue: $scope.binning.max,
-            options: {
-              floor: $scope.edges.min,
-              ceil: $scope.edges.max,
-              step: 1,
-              minRange: 1,
-              noSwitching: true,
-              translate: function(value, sliderId, label) {
-                switch (label) {
-                  case 'model':
-                    return '<b>min: </b>' + value;
-                  case 'high':
-                    return '<b>max: </b>' + value;
-                  default:
-                    return '' + value
-                }
-              },
-              onChange: function(){
-                $scope.updateBinningValues();
-              }
-            }
-        };
-        leafletData.getMap();
-        
-        var latlngs = metricsList.getLatLngs();
-        var bounds = L.latLngBounds(latlngs)
-        console.log(bounds)
-        // var bounds = leafletBoundsHelpers.createBoundsFromArray(latlngs);
-        //
-//         var map = leafletData.getMap();
-//         map.fitBounds(bounds);
-//         // angular.extend($scope, {
-// //           bounds: bounds
-// //         });
-        leafletData.getMap().then(function(map) {
-                map.fitBounds(bounds);
-        });
-
-        
-      } else {
-        //no data appears
       }
-    }, function error(response){
+    
+      $scope.metricNames = metricName;
+      $scope.stations=[];
+      // console.log(metricsList.getMetrics());
+      var data;
+      //net, sta, loc, chan, start, end, 
+      params = params.replace(/(timewindow|metric)=[^&]*/ig,'')
+      params = params.replace(/chan/ig,'cha')
+      // params = params.replace(/timewindow=*/ig,'')
+      $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
+        // console.log(response.data);
+        data = response.data.split('\n'); //Oth is the header
+      
+        $scope.error.data = data[0].length > 0;
+      
+        if($scope.error.data){
+          var headers = data[0].split("#");
+          headers = headers[1].split(" | ");
+
+          for (var i = 1; i < data.length; i++){
+           // console.log(data.length-i)
+            var station = data[i].split("|");
+            var staObj = {};   
+            for (var j = 0; j < station.length; j++){
+              staObj[headers[j].trim().toLowerCase()]=station[j];
+            }
+            $scope.stations.push(staObj);
+            metricsList.setStations(staObj, station[1]+"_"+station[0]);
+          }  
+          
+          // console.log("combine");
+          metricsList.combineLists();
+          var metric = metricsList.getCombined();
+          // console.log(metric)
+          var markers = [];
+        
+          metric = medianFinder.findValues(metric);
+          iconColoring.setValues(medianFinder.getValues());
+        
+          iconColoring.intitalBinning(95);
+        
+          var metricKeys = Object.keys(metric);
+        
+          for(var i = 0; i< metricKeys.length; i++){
+            var m =  metric[metricKeys[i]];
+            markers[metricKeys[i]]={
+              lat: m.lat,
+              lng: m.lng,
+              message: iconColoring.getMessage(m, medianFinder.getChannels()[m.sta]),
+              icon: {
+                type:'div',
+                className: 'icon-plain',
+                // iconUrl: iconColoring.getIcon(m.value),
+                iconSize: null,
+                html:iconColoring.getIcon(m.value)
+              }
+            
+            }
+          }
+        
+          $scope.icons = iconColoring.getBins();
+          $scope.binning = iconColoring.Binning();
+          $scope.edges = iconColoring.getEdges();
+          $scope.markers = markers;
+          
+          //Slider config
+          $scope.slider = {
+              minValue: $scope.binning.min,
+              maxValue: $scope.binning.max,
+              options: {
+                floor: $scope.edges.min,
+                ceil: $scope.edges.max,
+                step: 1,
+                minRange: 1,
+                noSwitching: true,
+                translate: function(value, sliderId, label) {
+                  switch (label) {
+                    case 'model':
+                      return '<b>min: </b>' + value;
+                    case 'high':
+                      return '<b>max: </b>' + value;
+                    default:
+                      return '' + value
+                  }
+                },
+                onChange: function(){
+                  $scope.updateBinningValues();
+                }
+              }
+          };
+          leafletData.getMap();
+        
+          var latlngs = metricsList.getLatLngs();
+          var bounds = L.latLngBounds(latlngs)
+          leafletData.getMap().then(function(map) {
+                  map.fitBounds(bounds);
+          });
+        
+        } else {
+          //no data appears
+          console.log("oops")
+
+        }
+      }, function error(response){
       // console.log(response);
-    });
+        $scope.error.noData = "Error: Bad request. Please check URL parameters.";
+      });
+    } else if (Object.keys(data.measurements)[0] == "error") {
+      $scope.error.noData = "Error: " + data.measurements[Object.keys(data.measurements)[0]][0].message;
+    } else {
+      $scope.error.noData = "Error: No data received."
+    }
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
-    // console.log(data + " : " + status)
+    $scope.error.noData = "Error: Bad request. Please check URL parameters.";
   });
   
   $scope.updateBinningValues = function(){
