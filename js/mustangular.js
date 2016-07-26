@@ -40,6 +40,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
     // console.log(params.timewindow)
     $scope.master.timewindow = params.timewindow.start && params.timewindow.stop ? $filter('date')(params.timewindow.start, 'yyyy-MM-ddTHH:mm:ss')+","+$filter('date')(params.timewindow.stop, 'yyyy-MM-ddTHH:mm:ss') : null
     var par = $httpParamSerializer($scope.master);
+    // console.log("par" + par)
     $window.location.href = "/mustangular/mustangular_map.html?" + par;
   }
   
@@ -500,7 +501,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     var params = $window.location.search.replace(/&\w*=&/g, '&');
     params=params.replace(/&\w*=$/gm, ""); //strip out empty params
     params=params.replace(/\?\w*=&/gm, "?");
-    window.location = "/Mustangular" + params;
+    window.location = "/mustangular" + params;
   }
 
 });
