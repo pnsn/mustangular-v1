@@ -169,7 +169,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   
   this.intitalBinning = function(percentile){
     var val = Math.round((percentile/100.00 * _edges.count));
-    this.setBinning({max:_edges.values[val], min: _edges.min});
+    this.setBinning({max:_edges.values[val], min: 0});
     // this.makeBins();
   }
   

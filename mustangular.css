@@ -38,7 +38,7 @@ li.included{
 }
 
 #key{
-  width: 500px;
+  width: 300px;
   float:left;
   height:auto;
 }
@@ -53,4 +53,8 @@ li.included{
 #key #explanations {
 /*  float:right;*/
   height:400px;
+}
+#colorpicker {
+  float:left;
+  width:200px;
 }
