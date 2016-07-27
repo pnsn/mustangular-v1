@@ -52,7 +52,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   // var time = 
   var time = {
     start: params.timewindow? new Date(params.timewindow.split(",")[0]) : null,
-    stop: params.timewindow? new Date(params.timewindow.split(",")[1]) : null,
+    stop: params.timewindow? new Date(params.timewindow.split(",")[1].replace("T00:00:00", "T23:59:59")) : null,
   }
   
   //Spoof UTC in datetime input because js converts from UTC to local automatically
@@ -344,7 +344,10 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           scrollWheelZoom: false
       }
   });
-
+  $scope.binning={
+    min: 0,
+    max: 10 
+  }
 
   var params = $window.location.search.replace(/&\w*=&/g, '&');
   params=params.replace(/&\w*=$/gm, ""); //strip out empty params
@@ -470,12 +473,15 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           leafletData.getMap().then(function(map) {
                   map.fitBounds(bounds);
           });
-        
+          setTimeout(function(){
+                  $scope.$broadcast('reCalcViewDimensions');
+              }, 10);
         } else {
           //no data appears
           console.log("oops")
 
         }
+        
       }, function error(response){
       // console.log(response);
         $scope.error.noData = "Error: Bad request. Please check URL parameters.";
