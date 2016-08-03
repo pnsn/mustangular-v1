@@ -60,17 +60,21 @@
             <rzslider rz-slider-model="binning.min" rz-slider-high="binning.max" rz-slider-options="slider.options"></rzslider>
           </div>
       </div>
-   </div>
-   
    <div id="key" ng-show="error.data">
       <h3> Key: </h3>
       <table>
+         <tr><th>Icon</th><th>Range</th><th>Count</th></tr>
          <tr ng-repeat="icon in icons">
-            <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td><td>{{icon.min | number:1}}  to {{icon.max | number:1}}</td>
+            <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td>
+            <td>{{icon.min | number:1}}  to {{icon.max | number:1}}</td>
+            <td>{{icon.count}}</td>
          </tr>
       </table>
    </div>
    
+   </div>
+   
+
    <!-- <div id="colorpicker">
       <input type="text" ng-model="color.low">
       <input type="text" ng-model="color.mid">

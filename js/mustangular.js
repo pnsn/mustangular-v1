@@ -159,7 +159,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
 })
 .service('iconColoring', function($filter){
   var _edges = {max:-1000, min: 1000, count:0, values: []}
-  var _binning = {max:10, count:5, min: 0, width: 2, mid:7.5};
+  var _binning = {max:10, count:5, min: 0, width: 2};
   var _bins;
   // var _icons = [];
   
@@ -174,27 +174,36 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   
   this.intitalBinning = function(percentile){
     var val = Math.round((percentile/100.00 * _edges.count));
-    this.setBinning({max:_edges.values[val], min: 0});
-    // this.makeBins();
+    var min = _edges.min > 0 ? _edges.min : 0;
+    var count = _edges.max - _edges.min > _binning.count ? _binning.count : 1; //within 5 of eachother just make 1 bin
+    this.setBinning({max:_edges.values[val], min: min, count: count});
   }
   
   this.makeBins = function(){ //divICON!!!!!!!
     _bins = []; 
     var min =  _binning.min;
     var rainbow = new Rainbow();
-    rainbow.setNumberRange(0, _binning.count-1);
-    rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
-    var max;
-    _bins.push({max:_binning.min, min: _edges.min, color:"000"})
-    for (var i = 0; i < _binning.count; i++){
+    if(_binning.count > 1){
+      rainbow.setNumberRange(0, _binning.count-1);
+      rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
+      var max;
+      _bins.push({max:min, min: _edges.min, color:"000", count:0})
+      for (var i = 0; i < _binning.count; i++){
 
-      max = min + _binning.width;
-      _bins.push({max:max, min: min, color:rainbow.colorAt(i)});
-      // if(_bins[i-1] == )
-      min = max;
+        max = min + _binning.width;
+      
+        if(i == _binning.count - 1){
+          _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0});
+        } else {
+          _bins.push({max:max, min: min, color:rainbow.colorAt(i), count:0});
+        }
+        min = max;
+      }
+      _bins.push({max:_edges.max, min: _binning.max, color:"7D26CD", count: 0})
+    
+    } else {
+      _bins.push({max: _edges.max, min:_edges.min, color: "1fd00a", count: 0})
     }
-    _bins.push({max:_edges.max, min: min, color:"7D26CD"})
-
     
   }
   
@@ -203,22 +212,13 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   }
   
   this.getIcon = function(value){
-    // var color = 'purple';
-    
-    if(value < _binning.min){
-      // console.log(_binning.min + "  " + value)
-      return "<div class='icon-outlier-low'></div>"
-    } else if (value > _binning.max){
-      return "<div class='icon-outlier-high'></div>"
-    } else {
-      for(var i = 0; i < _binning.count; i++){
-        if((value >= _bins[i].min && value < _bins[i].max) || (i == _binning.count - 1 && value ==  Math.round(_bins[i].max))){
-          return "<div class='icon' style='background-color:#" + _bins[i].color + "'></div>"
+      for (var i = 0; i < _bins.length; i++){
+        if(value >= _bins[i].min && value < _bins[i].max || (i == _bins.length - 1 && value == _bins[i].max)){
+          _bins[i].count++;
+          return "<div class='icon' style='background-color:#" + _bins[i].color + "'></div>";
         }
       }
     }
-  }
-  
   this.getMessage = function(station, channels){
     var string = "<ul>"
     string += "<li> Station: " + station.sta + "</li>"
@@ -259,9 +259,9 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   this.setBinning = function(binning){
     // console.log("before " + binning.min)
     _binning = {
-      max: binning.max? binning.max : _binning.max,
+      max: binning.max || binning.max == 0? binning.max : _binning.max,
       min: binning.min || binning.min == 0? binning.min : _binning.min,
-      count: binning.count? binning.count : _binning.count, 
+      count: binning.count? binning.count : _binning.count
     }
     
     // console.log("after: "+ _binning.min)
@@ -354,6 +354,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           scrollWheelZoom: false
       }
   });
+  
   $scope.binning={
     min: 0,
     max: 10 
@@ -466,7 +467,6 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
                 floor: $scope.edges.min,
                 ceil: $scope.edges.max,
                 step: 1,
-                minRange: 1,
                 noSwitching: true,
                 translate: function(value, sliderId, label) {
                   switch (label) {
