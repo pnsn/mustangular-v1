@@ -48,31 +48,45 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
       return new Date(date.getTime() + minutes*60000);
   }
   
+  $scope.fixTime = function(){
+    var time = $scope.a.timewindow
+    if(time.stop && time.stop.getHours() == "00" && time.stop.getMinutes()=="00"){
+      time.stop = new Date(time.stop.setHours(23,59,59));
+    }
+  }
+  
   var params = $location.search();
-  // var time = 
-  var time = {
-    start: params.timewindow? new Date(params.timewindow.split(",")[0]) : null,
-    stop: params.timewindow? new Date(params.timewindow.split(",")[1].replace("T00:00:00", "T23:59:59")) : null,
+  if(params){
+    var time = {
+      start: params.timewindow? new Date(params.timewindow.split(",")[0]) : null,
+      stop: params.timewindow? new Date(params.timewindow.split(",")[1]) : null,
+    }
+    // console.log(time.stop)
+    //Spoof UTC in datetime input because js converts from UTC to local automatically
+    time.start = time.start ? addMinutes(time.start, time.start.getTimezoneOffset()) : null;
+    time.stop = time.stop ?  addMinutes(time.stop, time.stop.getTimezoneOffset()) : null;
+
+    $scope.a = {
+      net: params.net,
+      chan: params.chan,
+      sta: params.sta,
+      loc: params.loc,
+      qual: params.qual,
+      timewindow: {
+        start: time.start,
+        stop: time.stop
+      },
+      metric: params.metric
+    }
   }
-  
-  //Spoof UTC in datetime input because js converts from UTC to local automatically
-  time.start = time.start ? addMinutes(time.start, time.start.getTimezoneOffset()) : null;
-  time.stop = time.stop ?  addMinutes(time.stop, time.stop.getTimezoneOffset()) : null;
-  
-  $scope.a = {
-    net: params.net,
-    chan: params.chan,
-    sta: params.sta,
-    loc: params.loc,
-    qual: params.qual,
-    timewindow: {
-      start: time.start,
-      stop: time.stop
-    },
-    metric: params.metric
-  }
-  
 });
+
+function addMinutes(date, minutes) {
+    return new Date(date.getTime() + minutes*60000);
+}
+
+
+
 
 
 

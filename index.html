@@ -18,7 +18,7 @@
       <p>Location:  <input type="text" ng-model="a.loc"> {{a.loc}} </p>
       <p>Quality: <input type="text" ng-model="a.qual"> {{a.qual}} </p>
       <p>Start time: <input type="date" ng-model="a.timewindow.start" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}} </p>
-      <p>End time: <input type="date" ng-model="a.timewindow.stop" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} </p>
+      <p>End time: <input type="date" ng-model="a.timewindow.stop" ng-change="fixTime()" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} </p>
       
       <label for="metric">Metric: </label>
       <select id="metric" ng-model="a.metric" required>
