@@ -81,15 +81,6 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   }
 });
 
-function addMinutes(date, minutes) {
-    return new Date(date.getTime() + minutes*60000);
-}
-
-
-
-
-
-
 //Map
 var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function($locationProvider){
   $locationProvider.html5Mode({
@@ -193,12 +184,17 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
     var rainbow = new Rainbow();
     rainbow.setNumberRange(0, _binning.count-1);
     rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
+    var max;
+    _bins.push({max:_binning.min, min: _edges.min, color:"000"})
     for (var i = 0; i < _binning.count; i++){
+
       max = min + _binning.width;
       _bins.push({max:max, min: min, color:rainbow.colorAt(i)});
       // if(_bins[i-1] == )
       min = max;
     }
+    _bins.push({max:_edges.max, min: min, color:"7D26CD"})
+
     
   }
   
@@ -368,7 +364,13 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   params=params.replace(/\?\w*=&/gm, "?");
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
   var configs ='&output=jsonp&callback=angular.callbacks._0'; //2016-05-30,2016-05-31
-  
+  $scope.tooltip = {
+    min:false,
+    max:false,
+    bin:false,
+    slider: false,
+    binning: false
+  }
   $scope.error = {
     data: false,
     noData: "Waiting for data."
@@ -378,6 +380,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     console.log(url+params + configs)
     // console.log(data)
     if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
+      $scope.error.noData ="Processing data."
       metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
     
       //Prettify the metric name

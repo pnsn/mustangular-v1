@@ -12,18 +12,20 @@
 
 <div ng-app="myApp" ng-controller="formCtrl">
    <form novalidate ng-submit="submit(a)" autocomplete="on">
-    	<p>Network:  <input type="text" ng-model="a.net"> {{a.net}} </p>
-      <p>Channel: <input type="text" ng-model="a.chan"> {{a.chan}} </p>
-      <p>Station:  <input type="text" ng-model="a.sta"> {{a.sta}} </p>
-      <p>Location:  <input type="text" ng-model="a.loc"> {{a.loc}} </p>
-      <p>Quality: <input type="text" ng-model="a.qual"> {{a.qual}} </p>
-      <p>Start time: <input type="date" ng-model="a.timewindow.start" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}} </p>
-      <p>End time: <input type="date" ng-model="a.timewindow.stop" ng-change="fixTime()" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} </p>
-      
+    	<div class="controls"> <label> Network: </label> <input type="text" ng-model="a.net"> {{a.net}} </div>
+      <div class="controls"> <label> Channel:</label> <input type="text" ng-model="a.chan"> {{a.chan}} </div>
+      <div class="controls"> <label> Station:  </label><input type="text" ng-model="a.sta"> {{a.sta}} </div>
+      <div class="controls"> <label> Location: </label> <input type="text" ng-model="a.loc"> {{a.loc}} </div>
+      <div class="controls"> <label> Quality: </label><input type="text" ng-model="a.qual"> {{a.qual}} </div>
+      <div class="controls"> <label> Start time: </label><input type="date" ng-model="a.timewindow.start" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}} <div class="required">*required</div></div> 
+      <div class="controls"> <label> End time: </label><input type="date" ng-model="a.timewindow.stop" ng-change="fixTime()" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} <div class="required">*required</div></div>
+      <div class="controls">
       <label for="metric">Metric: </label>
       <select id="metric" ng-model="a.metric" required>
          <option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</option>
       </select>
+      <div class="required">*required</div>
+      </div>
       <button type="submit">Submit</button>
    </form>
 </div>

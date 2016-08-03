@@ -20,30 +20,57 @@
       <button ng-click="goBack()"> Return to form</button>
       <p class="error" ng-show="!error.data">{{error.noData}}</p>
       <div ng-show="error.data">
-         <p>Metric: {{metricNames}}</p>
-         <p>There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.</p>
-        	<p>Max binning value: <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}> Values above {{binning.max}} will be not be binned (displayed in purple)</p>
-        	<p>Min binning value: <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}> Values below {{binning.min}} will be not be binned (displayed in black)</p>
-         <p>Number of bins:    <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1"> Values divided into {{binning.count}} bins</p>
-         <p>Maximum metric value: {{edges.max}}</p>
-         <p>Minimum metric value: {{edges.min}}</p>
+         <h1>Metric: {{metricNames}}</h1>
+         <h2>There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.</h2>
+         <div>
+            <h3> Binning controls:</h3>
+            <img class="tooltip" ng-mouseover="tooltip.binning = true" ng-mouseleave="tooltip.binning = false" src="images/tooltip.png">
+            <div class="tooltip-message" ng-show="tooltip.binning"> Use the slider or the inputs to change the number of bins and the maximum and minimum values that will be included in the bins.</div>
+        	   <div> Value range on map: 
+               <span>min: {{edges.min}}, </span>
+               <span>max: {{edges.max}} </span>
+            </div>
+         </div>
+         
+         <div class="controls">
+            <label> Max binning value:</label>
+            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}>
+            <img class="tooltip" ng-mouseover="tooltip.max = true" ng-mouseleave="tooltip.max = false" src="images/tooltip.png">
+            <div class="tooltip-message" ng-show="tooltip.max"> Values above {{binning.max}} will be not be included in the bins.</div>
+         </div>
+         <div class="controls">
+            <label>Min binning value:</label> 
+            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}>
+            <img class="tooltip" ng-mouseover="tooltip.min = true" ng-mouseleave="tooltip.min = false"src="images/tooltip.png">
+            <div class="tooltip-message" ng-show="tooltip.min">Values below {{binning.min}} will be not be included in the bins.</div>
+         </div>
+         <div class="controls">
+            <label>Number of bins: </label>
+            <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1">
+            <img class="tooltip" ng-mouseover="tooltip.bin = true" ng-mouseleave="tooltip.bin = false"src="images/tooltip.png">
+            <div class="tooltip-message" ng-show="tooltip.bin">Values divided into {{binning.count == "1" ? binning.count + " bin" : binning.count + " bins" }}.</div>
+         </div>
+
          <!-- <span>Test features below:</span> -->
-         <p>Slide to change binning values: [test feature]</p>
-         <rzslider rz-slider-model="binning.min"
-                   rz-slider-high="binning.max"
-                   rz-slider-options="slider.options"></rzslider>
+         <div class="controls">
+            <label> Maximum and minimum binning values: </label>
+            <img class="tooltip" ng-mouseover="tooltip.slider = true" ng-mouseleave="tooltip.slider = false" src="images/tooltip.png">
+            <div class="tooltip-message" ng-show="tooltip.slider"> Drag the slider to change the bin range.</div>
+
+            <rzslider rz-slider-model="binning.min" rz-slider-high="binning.max" rz-slider-options="slider.options"></rzslider>
+          </div>
       </div>
    </div>
    
    <div id="key" ng-show="error.data">
-      <!-- <h4> Key </h4> -->
+      <h3> Key: </h3>
       <table>
-         <th> Key </th>
          <tr ng-repeat="icon in icons">
             <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td><td>{{icon.min | number:1}}  to {{icon.max | number:1}}</td>
          </tr>
       </table>
    </div>
+   
    <!-- <div id="colorpicker">
       <input type="text" ng-model="color.low">
       <input type="text" ng-model="color.mid">
