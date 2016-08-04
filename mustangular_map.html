@@ -68,6 +68,7 @@
             <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td>
             <td>{{icon.min | number:1}}  to {{icon.max | number:1}}</td>
             <td>{{icon.count}}</td>
+            <td><div class="histogram" style='width:{{icon.count > 0 ? Math.log(icon.count)/Math.log(5) * 10 : 0}}px; background-color:#{{icon.color}}'></div></td>
          </tr>
       </table>
    </div>

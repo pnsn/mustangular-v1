@@ -66,11 +66,7 @@ li.included{
   background-color: black;
 }*/
 
-.icon-key{
-  width:20px;
-  height:20px;
-  border: 1px solid black;
-}
+
 
 .controls {
   margin-bottom:5px;
@@ -81,25 +77,24 @@ li.included{
   width: 300px;
 /*  float:left;*/
   height:auto;
+
+}
+#key td {
+  padding-left: 5px;
+}
+#key .icon-key {
+  width: 20px;
+}
+#key .icon-key, .histogram{
+  width:20px;
+  height:20px;
+  border: 1px solid black;
 }
 label {
 /*  font-weight: bold;*/
 }
-#key #colors {
-  border: 1px solid black;
-  width: 40px;
-  height:400px;
-  list-style:none;
-}
 
-#key #explanations {
-/*  float:right;*/
-  height:400px;
-}
 #colorpicker {
   float:left;
   width:200px;
-}
-td {
-  padding-left: 5px;
 }

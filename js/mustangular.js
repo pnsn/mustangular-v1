@@ -159,7 +159,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
 })
 .service('iconColoring', function($filter){
   var _edges = {max:-1000, min: 1000, count:0, values: []}
-  var _binning = {max:10, count:5, min: 0, width: 2};
+  var _binning = {max:10, count:3, min: 0, width: 2};
   var _bins;
   // var _icons = [];
   
@@ -213,7 +213,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   
   this.getIcon = function(value){
       for (var i = 0; i < _bins.length; i++){
-        if(value >= _bins[i].min && value < _bins[i].max || (i == _bins.length - 1 && value == _bins[i].max)){
+        if(value >= _bins[i].min && value < _bins[i].max || ((i == _bins.length - 1 || i == _bins.length - 2) && value == _bins[i].max)){
           _bins[i].count++;
           return "<div class='icon' style='background-color:#" + _bins[i].color + "'></div>";
         }
@@ -346,6 +346,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   
 //TODO: split the current controller into a map controller and a controls controller for simplification
 app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder, leafletBoundsHelpers, leafletData) {
+  $scope.Math = window.Math;
   angular.extend($scope, {
       markers: {
         
@@ -376,10 +377,13 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     data: false,
     noData: "Waiting for data."
   }
-  
+
   $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
     console.log(url+params + configs)
-    // console.log(data)
+    // $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?"+params+ "&output=jsonp&callback=angular.callbacks._0", {cache:true}).success(function(data, status, headers, config){
+    // }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
+    //   console.log(data + " : " + status)
+    // });
     if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
       $scope.error.noData ="Processing data."
       metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
@@ -403,6 +407,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       params = params.replace(/(timewindow|metric)=[^&]*/ig,'')
       params = params.replace(/chan/ig,'cha')
       // params = params.replace(/timewindow=*/ig,'')
+      console.log(params)
       $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
         // console.log(response.data);
         data = response.data.split('\n'); //Oth is the header
@@ -509,8 +514,10 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       $scope.error.noData = "Error: No data received."
     }
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
-    $scope.error.noData = "Error: Bad request. Please check URL parameters.";
+    $scope.error.noData = "error: Bad request. Please check URL parameters.";
   });
+  
+
   
   $scope.updateBinningValues = function(){
     iconColoring.setBinning($scope.binning);
