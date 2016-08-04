@@ -65,8 +65,10 @@
       <table>
          <tr><th>Icon</th><th>Range</th><th>Count</th></tr>
          <tr ng-repeat="icon in icons">
-            <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td>
-            <td>{{icon.min | number:2}} - {{icon.max | number:2}}</td>
+            <td><div class="icon-key" style='background-color:#{{icon.color}}'></div> {{$index}}</td>
+            <td ng-show="{{icon.position < 0}}"> <{{icon.max-0.01| number:2}}</td>
+            <td ng-show="{{icon.position == 0}}">{{icon.min | number:2}} - {{icon.max - 0.01 | number:2}}</td>
+            <td ng-show="{{icon.position > 0}}">{{icon.min | number:2}}< </td>
             <td>{{icon.count}}</td>
             <td><div class="histogram" style='width:{{icon.count > 0 ? Math.log(icon.count)/Math.log(5) * 10 : 0}}px; background-color:#{{icon.color}}'></div></td>
          </tr>

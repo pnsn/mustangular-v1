@@ -185,28 +185,31 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
     _bins = []; 
     var min =  _binning.min;
     var rainbow = new Rainbow();
+    _bins.push({max:min, min: _edges.min, color:"000", count:0, position:-1})
     if(_binning.count > 1){
       rainbow.setNumberRange(0, _binning.count-1);
       rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
       var max;
-      _bins.push({max:min, min: _edges.min, color:"000", count:0})
+      
       for (var i = 0; i < _binning.count; i++){
 
         max = min + _binning.width;
       
         if(i == _binning.count - 1){
-          _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0});
+          _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0, position: 0});
         } else {
-          _bins.push({max:max, min: min, color:rainbow.colorAt(i), count:0});
+          _bins.push({max:max, min: min, color:rainbow.colorAt(i), count:0, position: 0});
         }
         min = max;
       }
-      _bins.push({max:_edges.max, min: _binning.max, color:"7D26CD", count: 0})
+
     
     } else {
-      _bins.push({max: _edges.max, min:_edges.min, color: "1fd00a", count: 0})
+      
+      _bins.push({max: _binning.max, min:_binning.min, color: "1fd00a", count: 0, position:0})
+      
     }
-    
+    _bins.push({max:_edges.max, min: _binning.max, color:"7D26CD", count: 0, position: 1})
   }
   
   this.getBins = function() {
@@ -269,7 +272,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
     // console.log("after: "+ _binning.min)
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     this.makeBins();
-    console.log(_binning)
+    // console.log(_binning)
   }
 
   this.Binning = function(){
@@ -526,6 +529,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     iconColoring.setBinning($scope.binning);
     $scope.markers = iconColoring.updateMarkers($scope.markers, medianFinder.getChannels());
     $scope.icons = iconColoring.getBins();
+    console.log($scope.binning)
   }
   
 
