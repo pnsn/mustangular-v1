@@ -101,6 +101,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
       findValues: function(metric){       
         var keys = Object.keys(metric);
         // console.log(metric)
+        // console.log(metric)
         for (var i = 0; i < keys.length; i++){
           var max = -1000;
           // console.log(metric[keys[i]].chans)
@@ -108,11 +109,10 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
           var chanKeys = Object.keys(chans);
           // console.log(chanKeys)
           for(var j = 0; j < chanKeys.length; j++){
-
             var array = $filter('orderBy')(chans[chanKeys[j]]);
-            var mid = array.length/2+.5;
+            var mid = array.length/2-.5;
             var median;
-            if(mid % 1 == 0){
+            if(mid % 1 == 0){ //whole number  
               median = array[mid];
             } else {
               median = (array[mid-.5]+array[mid-.5])/2;
@@ -174,9 +174,11 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   
   this.intitalBinning = function(percentile){
     var val = Math.round((percentile/100.00 * _edges.count));
+    // console.log(val)
     var min = _edges.min > 0 ? _edges.min : 0;
     var count = _edges.max - _edges.min > _binning.count ? _binning.count : 1; //within 5 of eachother just make 1 bin
     this.setBinning({max:_edges.values[val], min: min, count: count});
+    // console.log(_binning)
   }
   
   this.makeBins = function(){ //divICON!!!!!!!
@@ -267,6 +269,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
     // console.log("after: "+ _binning.min)
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     this.makeBins();
+    console.log(_binning)
   }
 
   this.Binning = function(){
@@ -463,7 +466,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           $scope.binning = iconColoring.Binning();
           $scope.edges = iconColoring.getEdges();
           $scope.markers = markers;
-          
+          console.log($scope.binning.width)
           //Slider config
           $scope.slider = {
               minValue: $scope.binning.min,
@@ -471,7 +474,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
               options: {
                 floor: $scope.edges.min,
                 ceil: $scope.edges.max,
-                step: 1,
+                step: $scope.binning.width,
                 noSwitching: true,
                 translate: function(value, sliderId, label) {
                   switch (label) {

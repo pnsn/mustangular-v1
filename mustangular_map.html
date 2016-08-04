@@ -56,8 +56,8 @@
             <label> Maximum and minimum binning values: </label>
             <img class="tooltip" ng-mouseover="tooltip.slider = true" ng-mouseleave="tooltip.slider = false" src="images/tooltip.png">
             <div class="tooltip-message" ng-show="tooltip.slider"> Drag the slider to change the bin range.</div>
-
-            <rzslider rz-slider-model="binning.min" rz-slider-high="binning.max" rz-slider-options="slider.options"></rzslider>
+            *slider temporarily down
+            <!-- <rzslider rz-slider-precision="1" rz-slider-model="binning.min" rz-slider-high="binning.max" rz-slider-options="slider.options"></rzslider> -->
           </div>
       </div>
    <div id="key" ng-show="error.data">
@@ -66,7 +66,7 @@
          <tr><th>Icon</th><th>Range</th><th>Count</th></tr>
          <tr ng-repeat="icon in icons">
             <td><div class="icon-key" style='background-color:#{{icon.color}}'></div></td>
-            <td>{{icon.min | number:1}}  to {{icon.max | number:1}}</td>
+            <td>{{icon.min | number:2}} - {{icon.max | number:2}}</td>
             <td>{{icon.count}}</td>
             <td><div class="histogram" style='width:{{icon.count > 0 ? Math.log(icon.count)/Math.log(5) * 10 : 0}}px; background-color:#{{icon.color}}'></div></td>
          </tr>
