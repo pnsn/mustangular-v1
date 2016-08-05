@@ -1,5 +1,5 @@
 //Form 
-var app = angular.module('myApp', []);
+var app = angular.module('myApp', ['ngMaterial']);
 
 app.config(['$locationProvider', function($locationProvider) {
         $locationProvider.html5Mode({
@@ -10,7 +10,7 @@ app.config(['$locationProvider', function($locationProvider) {
 
 
 app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $location, $http, $filter){
-  
+  $scope.maxDate = new Date();
   $scope.metrics = [];
   $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=angular.callbacks._0", {cache:true}).success(function(data, status, headers, config){ 
           // console.log(data.metrics)
@@ -34,7 +34,9 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
   });
 
   $scope.master = {};
-
+  $scope.dateChange = function(){
+    console.log($scope.myDate)
+  };
   $scope.submit = function(params) {
     $scope.master = angular.copy(params);
     // console.log(params.timewindow)
@@ -82,7 +84,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
 });
 
 //Map
-var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], function($locationProvider){
+var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessages', 'ngMaterial'], function($locationProvider){
   $locationProvider.html5Mode({
     enabled:true,
     requireBase: false
@@ -161,12 +163,14 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], functio
   var _edges = {max:-1000, min: 1000, count:0, values: []}
   var _binning = {max:10, count:3, min: 0, width: 2};
   var _bins;
+  var _layers ={};
   // var _icons = [];
   
   this.updateMarkers = function(markers, stations){
     for(var i = 0; i < Object.keys(markers).length; i++) {     
       var m = markers[Object.keys(markers)[i]];
-      m.icon.html = this.getIcon(stations[Object.keys(markers)[i]].max);
+      m.icon.html = this.getIcon(stations[Object.keys(markers)[i]].max).icon;
+      m.layer = this.getIcon(stations[Object.keys(markers)[i]].max).layer;
       markers[Object.keys(markers)[i]] = m;
     }
     return markers;
@@ -181,11 +185,11 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], functio
     // console.log(_binning)
   }
   
-  this.makeBins = function(){ //divICON!!!!!!!
+  this.makeBins = function(){ 
     _bins = []; 
     var min =  _binning.min;
     var rainbow = new Rainbow();
-    _bins.push({max:min, min: _edges.min, color:"000", count:0, position:-1})
+    _bins.push({max:min, min: _edges.min, color:"000", count:0, position:-1, class:"icon-group-0"})
     if(_binning.count > 1){
       rainbow.setNumberRange(0, _binning.count-1);
       rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
@@ -196,9 +200,11 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], functio
         max = min + _binning.width;
       
         if(i == _binning.count - 1){
-          _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0, position: 0});
+          // console.log(i)
+          _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0, position: 0,  class:"icon-group-" + (i + 1)});
         } else {
-          _bins.push({max:max, min: min, color:rainbow.colorAt(i), count:0, position: 0});
+          // console.log(i)
+          _bins.push({max:max, min: min, color:rainbow.colorAt(i), count:0, position: 0, class:"icon-group-" + (i + 1)});;
         }
         min = max;
       }
@@ -206,30 +212,48 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], functio
     
     } else {
       
-      _bins.push({max: _binning.max, min:_binning.min, color: "1fd00a", count: 0, position:0})
+      _bins.push({max: _binning.max, min:_binning.min, color: "1fd00a", count: 0, position:0, class:"icon-group-1"})
       
     }
-    _bins.push({max:_edges.max, min: _binning.max, color:"7D26CD", count: 0, position: 1})
+    _bins.push({max:_edges.max, min: _binning.max, color:"7D26CD", count: 0, position: 1, class:"icon-group-" + (_binning.count+1)})
+    makeLayers();
   }
   
   this.getBins = function() {
     return _bins;
   }
   
+  function makeLayers(){
+    for(var i = 0; i < _bins.length; i++){
+      _layers[_bins[i].class] = {
+        type: 'group',
+        name: _bins[i].class,
+        visible: true
+      }
+    }
+  }
+  
+  this.getLayers = function() {
+    return _layers;
+  }
+  
   this.getIcon = function(value){
       for (var i = 0; i < _bins.length; i++){
         if(value >= _bins[i].min && value < _bins[i].max || ((i == _bins.length - 1 || i == _bins.length - 2) && value == _bins[i].max)){
           _bins[i].count++;
-          return "<div class='icon' style='background-color:#" + _bins[i].color + "'></div>";
+          return {icon:"<div class='icon' style='background-color:#" + _bins[i].color + "'></div>", layer:_bins[i].class};
         }
       }
+
     }
+    
   this.getMessage = function(station, channels){
     var string = "<ul>"
-    string += "<li> Station: " + station.sta + "</li>"
-    string += "<li> Displayed value: " + station.value + "</li>"
-    string += "<li> Network: " + station.net + "</li>"
-    string += "<li> Channel (median value): <ul>"
+    string += "<li> Station: " + station.sta + "</li>" 
+    + "<li> Displayed value: " + station.value 
+    + "</li>" + "<li> Network: " + station.net + "</li>"
+    + "<li> Channel (median value): <ul>";
+    
     for(var i = 0; i < Object.keys(channels).length; i++) {
       if(Object.keys(channels)[i] != "max"){
         var first = Object.keys(channels)[i].charAt(0);
@@ -351,7 +375,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], functio
 
   
 //TODO: split the current controller into a map controller and a controls controller for simplification
-app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder, leafletBoundsHelpers, leafletData) {
+app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder, leafletBoundsHelpers, leafletData, $mdDialog) {
   $scope.Math = window.Math;
   angular.extend($scope, {
       markers: {
@@ -359,9 +383,30 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       },
       defaults: {
           scrollWheelZoom: false
-      }
+      },
+      layers: {
+        baselayers: {
+          osm: {
+              name: 'OpenStreetMap',
+              url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              type: 'xyz'
+          }
+        },
+        overlays: {
+          
+        }
+      },
+      toggleLayer: function(type)
+      {
+          $scope.layers.overlays[type].visible = !$scope.layers.overlays[type].visible;
+      },
+      layerVisibility: function(type, count){
+        return $scope.layers.overlays[type].visible && count > 0;
+      },
   });
-  
+  $scope.toggle = function(klass){
+    console.log(klass)
+  }
   $scope.binning={
     min: 0,
     max: 10
@@ -379,6 +424,28 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   }
 
 
+  function DialogController($scope, $mdDialog) {
+    $scope.hide = function() {
+      $mdDialog.hide();
+    };
+    $scope.cancel = function() {
+      $mdDialog.cancel();
+    };
+    $scope.answer = function(answer) {
+      $mdDialog.hide(answer);
+    };
+  }
+  
+  $scope.showAlert = function(ev){
+    $mdDialog.show({
+      controller: DialogController,
+      contentElement: '#moreInfo',
+      parent: angular.element(document.body),
+      targetEvent: ev,
+      clickOutsideToClose: true
+    });
+  }
+  
 
 
   $http.jsonp(url + params + configs, {cache:true})
@@ -444,7 +511,9 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
 
           for(var i = 0; i< metricKeys.length; i++){
             var m =  metric[metricKeys[i]];
+            var symbol = iconColoring.getIcon(m.value);
             markers[metricKeys[i]]={
+              layer: symbol.layer,
               lat: m.lat,
               lng: m.lng,
               message: iconColoring.getMessage(m, medianFinder.getChannels()[m.sta]),
@@ -453,7 +522,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
                 className: 'icon-plain',
                 // iconUrl: iconColoring.getIcon(m.value),
                 iconSize: null,
-                html:iconColoring.getIcon(m.value)
+                html: symbol.icon
               }
 
             }
@@ -463,14 +532,19 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           $scope.binning = iconColoring.Binning();
           $scope.edges = iconColoring.getEdges();
           $scope.markers = markers;
+          
+          $scope.layers.overlays = iconColoring.getLayers();
           // console.log($scope.binning.width)
           leafletData.getMap();
 
           var latlngs = metricsList.getLatLngs();
-          var bounds = L.latLngBounds(latlngs)
+          
+          var bounds = L.latLngBounds(latlngs);
+          
           leafletData.getMap().then(function(map) {
                   map.fitBounds(bounds);
           });
+          
           setTimeout(function(){
                   $scope.$broadcast('reCalcViewDimensions');
               }, 10);
@@ -499,6 +573,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     iconColoring.setBinning($scope.binning);
     $scope.markers = iconColoring.updateMarkers($scope.markers, medianFinder.getChannels());
     $scope.icons = iconColoring.getBins();
+    $scope.layers.overlays = iconColoring.getLayers();
     // console.log($scope.binning)
   }
 

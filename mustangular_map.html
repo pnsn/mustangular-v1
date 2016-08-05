@@ -4,93 +4,140 @@
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
    <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
-   <!-- <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.1/dist/leaflet.css" /> -->
-   <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
-   <link rel="stylesheet" type="text/css" href="rzslider.css"></link>
+
+<!--required for angular material -->
+   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
+   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-aria.min.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.js"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-messages.js"></script>
+   <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+   
+   <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
+<!--End Material stuff -->
+   
+   <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
    <script src="js/angular-leaflet-directive.js"></script>
    <script src="js/mustangular.js"></script>
    <script src="js/rainbowvis.js"></script>
    <!-- <link rel="stylesheet" type="text/css" href="mustangular.css"></link> -->
 </head>
 <body ng-app="myApp2" ng-controller="SimpleMapController">
-   <div ng-model="max">{{max}}</div>
-   <leaflet id="map" width="600px" height="800px" markers="markers"> <!--full screen map!--> </leaflet>
-   <div id="controls">
-      <button ng-click="goBack()"> Return to form</button>
+   <leaflet id="map" width="600px" height="800px" markers="markers" layers="layers"> <!--full screen map!--> </leaflet>
+   <md-content id="controls" layout-padding>
+      <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
       <p class="error" ng-show="!error.data">{{error.noData}}</p>
-      <div ng-show="error.data">
-         <h1>Metric: {{metric.title}} 
-            <img class="tooltip" ng-click="tooltip.description = !tooltip.description" src="images/tooltip.png">
-         </h1>
-         <div class="tooltip-message" ng-show="tooltip.description" ng-bind-html="metric.description"> </div>
-         <h2>Values: 
-            <ng-bind-html ng-bind-html="metric.tables[0].columns[0].description"></ng-bind-html>
-         </h2> 
-         <h2>There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.</h2>
+      <md-progress-circular ng-show="!error.data" md-mode="indeterminate"></md-progress-circular>
+   
+
+      <div ng-show="error.data" layout="column">
+         <div class=""> 
+            <div> Metric: {{metric.title}} 
+               <img class="tooltip" ng-click="tooltip.description = !tooltip.description" src="images/tooltip.png">
+               <div class="tooltip-message" ng-show="tooltip.description" ng-bind-html="metric.description"> </div>
+               <md-button class="md-raised" ng-click="showAlert($event)"> More info</md-button>
+            </div>
+            <div class="values"> Values: 
+               <ng-bind-html ng-bind-html="metric.tables[0].columns[0].description"></ng-bind-html>
+            </div>
+            <div> There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.
+            </div>
+         </div>
+         <md-divider></md-divider>
          <div>
-            <h3> Binning controls:</h3>
-            <img class="tooltip" ng-click="tooltip.binning = !tooltip.binning" src="images/tooltip.png">
-            <div class="tooltip-message" ng-show="tooltip.binning"> Use the slider or the inputs to change the number of bins and the maximum and minimum values that will be included in the bins.</div>
+            <div> Binning controls: 
+               <div class="tooltip">
+                  <md-icon class="tooltip" md-svg-src="images/tooltip.svg"> 
+                  <md-tooltip md-direction="right">
+                    Set the number bins and the range included in bins.
+                  </md-tooltip>
+               </div>
+            </div>
         	   <div> Value range on map: 
                <span>min: {{edges.min}}, </span>
                <span>max: {{edges.max}} </span>
             </div>
          </div>
          
-         <div class="controls">
+         <md-input-container class="md-block controls">
             <label> Max binning value:</label>
-            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}>
-            <img class="tooltip" ng-click="tooltip.max = !tooltip.max" src="images/tooltip.png">
-            <div class="tooltip-message" ng-show="tooltip.max"> Values above {{binning.max}} will be not be included in the bins.</div>
-         </div>
-         <div class="controls">
-            <label>Min binning value:</label> 
-            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}>
-            <img class="tooltip" ng-click="tooltip.min = !tooltip.min" src="images/tooltip.png">
-            <div class="tooltip-message" ng-show="tooltip.min">Values below {{binning.min}} will be not be included in the bins.</div>
-         </div>
-         <div class="controls">
-            <label>Number of bins: </label>
-            <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1">
-            <img class="tooltip" ng-click="tooltip.bin = !tooltip.bin" src="images/tooltip.png">
-            <div class="tooltip-message" ng-show="tooltip.bin">Values divided into {{binning.count == "1" ? binning.count + " bin" : binning.count + " bins" }}.</div>
-         </div>
+            <input flex="50" type="number" ng-model="binning.max" ng-change="updateBinningValues()" min={{binning.min}}>
+            <!-- <div class="tooltip"><md-icon class="tooltip" md-svg-src="images/tooltip.svg">
+               <md-tooltip md-direction="below">
+                 Values above {{binning.max}} will be not be included in the bins.
+               </md-tooltip>
+            </div> -->
 
-         <!-- <span>Test features below:</span> -->
-         <div class="controls">
-            <label> Maximum and minimum binning values: </label>
-            <img class="tooltip" ng-click="tooltip.slider = !tooltip.slider" src="images/tooltip.png">
-            <div class="tooltip-message" ng-show="tooltip.slider"> Drag the slider to change the bin range.</div>
-          </div>
+         </md-input-container >
+
+         <md-input-container class="md-block controls">
+            <label> Min binning value:</label>
+            <input flex="50" type="number" ng-model="binning.min" ng-change="updateBinningValues()" max={{binning.max}}>
+            <!-- <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
+               <md-tooltip md-direction="below">
+                 Values above {{binning.min}} will be not be included in the bins.
+               </md-tooltip>
+            </div> -->
+
+         </md-input-container >
+         
+         <md-input-container class="md-block controls">
+            <label>Number of bins: </label>
+            <input flex="50" type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1">
+            <!-- <div class="tooltip" ><md-icon md-svg-src="images/tooltip.svg">
+               <md-tooltip md-direction="below">
+                 Values divided into {{binning.count == "1" ? binning.count + " bin" : binning.count + " bins" }}.
+               </md-tooltip>
+            </div> -->
+         </md-input-container >
       </div>
    <div id="key" ng-show="error.data">
-      <h3> Key: <img class="tooltip" ng-click="tooltip.key = !tooltip.key" src="images/tooltip.png">
-      </h3>
-      <div class="tooltip-message" ng-show="tooltip.key">Click on the icon to toggle the icons of that color</div>
+      <div> Key:
+         <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
+            <md-tooltip md-direction="right">
+              Click on the icon next to a range to toggle stations with values in that range.
+            </md-tooltip>
+         </div>
+      </div>
       <table>
          <tr><th>Icon</th><th>Range</th><th>Count</th></tr>
-         <tr ng-repeat="icon in icons">
-            <td><div class="icon-key" style='background-color:#{{icon.color}}'><input type="checkbox" checked="true"></input></div></td>
+         <!-- <div flex-xs flex="50"> -->
+           <!-- <md-checkbox aria-label="Select All"
+                        ng-checked="isChecked()"
+                        md-indeterminate="isIndeterminate()"
+                        ng-click="toggleAll()">
+             <span ng-if="isChecked()">Un-</span>Select All
+           </md-checkbox> -->
+         <!-- </div> -->
+         <tr ng-repeat="icon in icons" ng-disabled="{{icon.count == 0}}">
+            <td>
+               <div class="icon-key"  style='background-color:#{{icon.color}}'>
+                  <md-checkbox ng-show="{{icon.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(icon.class, icon.count)" ng-click="toggleLayer(icon.class)"></md-checkbox>
+               </div>
+            </td>
             <td ng-show="{{icon.position < 0}}">< {{icon.max-0.01| number:2}}</td>
             <td ng-show="{{icon.position == 0}}">{{icon.min | number:2}} - {{icon.max - 0.01 | number:2}}</td>
-            <td ng-show="{{icon.position > 0}}"> {{icon.min | number:2}}</td>
+            <td ng-show="{{icon.position > 0}}">> {{icon.min | number:2}}</td>
             <td>{{icon.count}}</td>
             <td><div class="histogram" style='width:{{icon.count > 0 ? Math.log(icon.count)/Math.log(5) * 10 : 0}}px; background-color:#{{icon.color}}'></div></td>
          </tr>
+      </div>
       </table>
-   </div>
+   
    
    </div>
-   
-
-   <!-- <div id="colorpicker">
-      <input type="text" ng-model="color.low">
-      <input type="text" ng-model="color.mid">
-      <input type="text" ng-model="color.high">
-   </div> -->
-   
+   </md-content>
+   <div style="visibility: hidden">
+     <div class="md-dialog-container" id="moreInfo">
+       <md-dialog layout-padding >
+       <!-- <md-dialog-content> -->
+          Metric: {{metric.title}} 
+          <ng-bind-html="metric.description"> </ng-bind-html>
+       <!-- </md-dialog-content> -->
+       </md-dialog>
+     </div>
+   </div>
 </body>
+
 </html>
 
 <!--TODO: make up a marker that isn't huge,

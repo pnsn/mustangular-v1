@@ -1,27 +1,3 @@
-
-
-body {
-  font-size: 14px;
-  font-family: Sans-serif;
-}
-h1{
-  font-size: large;
-}
-h2{
-  font-size: medium;
-}
-h3{
-  font-size:medium;
-  display:inline-block;
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-#controls{
-  float:left;
-  width: 600px;
-  margin-left:5px;
-}
-
 #map{
   float:left;
   margin: 5px;
@@ -31,51 +7,14 @@ li.included{
   background-color: yellow;
 }
 
-.error {
-  color:red;
-}
-
-.required {
-  display:inline-block;
-  color:red;
-}
-
-.tooltip {
-/*  background-color: white;*/
-/*  color: white;*/
-  margin-left: 5px;
-  margin-right: 5px;
-}
-
-.tooltip-message {
-  display:inline-block;
-  
-}
-
 .icon, .icon-outlier-high, .icon-outlier-low {
   border-radius: 7px;
   height: 7px;
   width: 7px;
   border: 1px solid black;
 }
-
-/*.icon-outlier-high {
-  background-color: #7D26CD;
-}
-.icon-outlier-low{
-  background-color: black;
-}*/
-
-
-
-.controls {
-  margin-bottom:5px;
-  margin-top:5px;
-}
-
 #key{
   width: 300px;
-/*  float:left;*/
   height:auto;
 
 }
@@ -90,13 +29,28 @@ li.included{
   height:20px;
   border: 1px solid black;
 }
-label {
-/*  font-weight: bold;*/
+
+md-checkbox.md-checked.layer-toggle ._md-icon {
+ background-color: transparent !important;
+/* background-color: rgba(0, 255, 0, 0.87);*/
+ border-width: 1px;
+/* border-style: dashed;*/
+ 
 }
-h2 p{
+tr[disabled="disabled"] {
+  color:#808080;
+  opacity: 0.5;
+}
+#controls {
+  min-height: 200px;
+}
+.tooltip {
+  display:inline-block;
+}
+.tooltip md-icon{
+    height:15px;
+}
+.values p{
+  margin: 0px;
   display: inline;
-}
-#colorpicker {
-  float:left;
-  width:200px;
 }

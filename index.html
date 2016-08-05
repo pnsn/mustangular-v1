@@ -3,36 +3,51 @@
    <meta charset="UTF-8">
    <!-- <html lang="en-US"> -->
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
-
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular-resource.min.js"></script>
+   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
+   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-aria.min.js"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.js"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-messages.js"></script>
+   <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+   <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
    <script src="js/mustangular.js"></script>
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
 </head>
-<body>
+<body ng-app="myApp" ng-controller="formCtrl" ng-cloak>
 
-<div ng-app="myApp" ng-controller="formCtrl">
-   <form novalidate ng-submit="submit(a)" autocomplete="on">
-    	<div class="controls"> <label> Network: </label> <input type="text" ng-model="a.net"> {{a.net}} </div>
-      <div class="controls"> <label> Channel:</label> <input type="text" ng-model="a.chan"> {{a.chan}} </div>
-      <div class="controls"> <label> Station:  </label><input type="text" ng-model="a.sta"> {{a.sta}} </div>
-      <div class="controls"> <label> Location: </label> <input type="text" ng-model="a.loc"> {{a.loc}} </div>
-      <div class="controls"> <label> Quality: </label><input type="text" ng-model="a.qual"> {{a.qual}} </div>
-      <div class="controls"> <label> Start time: </label><input type="date" ng-model="a.timewindow.start" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}} <div class="required">*required</div></div> 
-      <div class="controls"> <label> End time: </label><input type="date" ng-model="a.timewindow.stop" ng-change="fixTime()" placeholder="yyyy-MM-ddTHH:mm:ss"> {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} <div class="required">*required</div></div>
-      <div class="controls">
-      <label for="metric">Metric: </label>
-      <select id="metric" ng-model="a.metric" required>
-         <option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</option>
-      </select>
-      <div class="required">*required</div>
-      </div>
-      <button type="submit">Submit</button>
+<md-content layout-padding flex="50">
+   <form ng-submit="submit(a)" autocomplete="on">
+      <md-input-container class="md-block" >
+         <label> Network </label>
+         <input ng-model=a.net>
+      </md-input-container >
+      <md-input-container class="md-block">
+         <label> Channel </label>
+         <input ng-model=a.chan>
+      </md-input-container>
+      <md-input-container class="md-block">
+         <label> Station </label>
+         <input ng-model=a.sta>
+      </md-input-container>
+      <md-input-container class="md-block">
+         <label> Location </label>
+         <input ng-model=a.loc>
+      </md-input-container>
+      <md-input-container class="md-block">
+         <label> Quality </label>
+         <input ng-model=a.net>
+      </md-input-container>
+         <md-datepicker ng-model="a.timewindow.start" md-placeholder="Enter start date" md-max-date="maxDate" ng-change="dateChange()"></md-datepicker> <!-- {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}}      -->
+         <md-datepicker ng-model="a.timewindow.stop" md-placeholder="Enter end date" ng-change="fixTime()" md-max-date="maxDate" ></md-datepicker> <!-- {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} --> 
+      <md-input-container class="md-block">
+         <label>Metric</label>
+         <md-select ng-model="a.metric" id="metric" required>
+            <md-option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</md-option>
+         </md-select>
+      </md-input-container>  
+      <md-button type="submit" class="md-raised md-primary">Submit</md-button> 
    </form>
-</div>
-
-<div>
-   
-</div>
+</md-content>
 
 </body>
 </html>
