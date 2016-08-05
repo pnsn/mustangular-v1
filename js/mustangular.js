@@ -82,7 +82,7 @@ app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $loca
 });
 
 //Map
-var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function($locationProvider){
+var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize'], function($locationProvider){
   $locationProvider.html5Mode({
     enabled:true,
     requireBase: false
@@ -227,7 +227,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'rzModule'], function(
   this.getMessage = function(station, channels){
     var string = "<ul>"
     string += "<li> Station: " + station.sta + "</li>"
-    string += "<li> Value: " + station.value + "</li>"
+    string += "<li> Displayed value: " + station.value + "</li>"
     string += "<li> Network: " + station.net + "</li>"
     string += "<li> Channel (median value): <ul>"
     for(var i = 0; i < Object.keys(channels).length; i++) {
@@ -364,62 +364,56 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   
   $scope.binning={
     min: 0,
-    max: 10 
+    max: 10
   }
 
   var params = $window.location.search.replace(/&\w*=&/g, '&');
   params=params.replace(/&\w*=$/gm, ""); //strip out empty params
   params=params.replace(/\?\w*=&/gm, "?");
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
-  var configs ='&output=jsonp&callback=angular.callbacks._0'; //2016-05-30,2016-05-31
-  $scope.tooltip = {
-    min:false,
-    max:false,
-    bin:false,
-    slider: false,
-    binning: false
-  }
+  var configs ='&output=jsonp&callback=JSON_CALLBACK';
+
   $scope.error = {
     data: false,
     noData: "Waiting for data."
   }
 
-  $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
-    console.log(url+params + configs)
-    // $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?"+params+ "&output=jsonp&callback=angular.callbacks._0", {cache:true}).success(function(data, status, headers, config){
-    // }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
-    //   console.log(data + " : " + status)
-    // });
+
+
+
+  $http.jsonp(url + params + configs, {cache:true})
+  .success(function(data, status, headers, config){ //TODO: don't do this caching in prod
+    console.log(url+params + configs);
     if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
+
       $scope.error.noData ="Processing data."
       metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
-    
+      
       //Prettify the metric name
-      var name = Object.keys(data.measurements)[0].split("_");
-      var metricName = "";
-      for(var n = 0; n < name.length; n++){
-        if (n ==0 ) {
-          metricName += name[n].charAt(0).toUpperCase() + name[n].slice(1);
-        } else {
-          metricName += " " + name[n];
-        }
-      }
-    
-      $scope.metricNames = metricName;
+      var name = Object.keys(data.measurements)[0];
+      $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?metric="+name+"&output=jsonp&callback=JSON_CALLBACK", {cache:true})
+        .success(function(data, status, headers, config){
+          $scope.metric = data.metrics[0];
+          // console.log(data.metrics);
+      }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
+        // console.log(data + " : " + status);
+      });
+
       $scope.stations=[];
       // console.log(metricsList.getMetrics());
       var data;
-      //net, sta, loc, chan, start, end, 
-      params = params.replace(/(timewindow|metric)=[^&]*/ig,'')
+      //net, sta, loc, chan, start, end,
+      params = params.replace(/(timewindow|metric|qual)=[^&]*&?/ig,'')
       params = params.replace(/chan/ig,'cha')
+      params = params.replace(/qual=[^&]*/ig, '')
       // params = params.replace(/timewindow=*/ig,'')
-      console.log(params)
+      // console.log(params)
       $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
         // console.log(response.data);
         data = response.data.split('\n'); //Oth is the header
-      
+
         $scope.error.data = data[0].length > 0;
-      
+
         if($scope.error.data){
           var headers = data[0].split("#");
           headers = headers[1].split(" | ");
@@ -427,27 +421,27 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           for (var i = 1; i < data.length; i++){
            // console.log(data.length-i)
             var station = data[i].split("|");
-            var staObj = {};   
+            var staObj = {};
             for (var j = 0; j < station.length; j++){
               staObj[headers[j].trim().toLowerCase()]=station[j];
             }
             $scope.stations.push(staObj);
             metricsList.setStations(staObj, station[1]+"_"+station[0]);
-          }  
-          
+          }
+
           // console.log("combine");
           metricsList.combineLists();
           var metric = metricsList.getCombined();
           // console.log(metric)
           var markers = [];
-        
+
           metric = medianFinder.findValues(metric);
           iconColoring.setValues(medianFinder.getValues());
-        
+
           iconColoring.intitalBinning(95);
-        
+
           var metricKeys = Object.keys(metric);
-        
+
           for(var i = 0; i< metricKeys.length; i++){
             var m =  metric[metricKeys[i]];
             markers[metricKeys[i]]={
@@ -461,41 +455,17 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
                 iconSize: null,
                 html:iconColoring.getIcon(m.value)
               }
-            
+
             }
           }
-        
+
           $scope.icons = iconColoring.getBins();
           $scope.binning = iconColoring.Binning();
           $scope.edges = iconColoring.getEdges();
           $scope.markers = markers;
-          console.log($scope.binning.width)
-          //Slider config
-          $scope.slider = {
-              minValue: $scope.binning.min,
-              maxValue: $scope.binning.max,
-              options: {
-                floor: $scope.edges.min,
-                ceil: $scope.edges.max,
-                step: $scope.binning.width,
-                noSwitching: true,
-                translate: function(value, sliderId, label) {
-                  switch (label) {
-                    case 'model':
-                      return '<b>min: </b>' + value;
-                    case 'high':
-                      return '<b>max: </b>' + value;
-                    default:
-                      return '' + value
-                  }
-                },
-                onChange: function(){
-                  $scope.updateBinningValues();
-                }
-              }
-          };
+          // console.log($scope.binning.width)
           leafletData.getMap();
-        
+
           var latlngs = metricsList.getLatLngs();
           var bounds = L.latLngBounds(latlngs)
           leafletData.getMap().then(function(map) {
@@ -509,7 +479,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           console.log("oops")
 
         }
-        
+
       }, function error(response){
       // console.log(response);
         $scope.error.noData = "Error: Bad request. Please check URL parameters.";
@@ -520,18 +490,17 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       $scope.error.noData = "Error: No data received."
     }
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
+    console.log(data + " : " + status);
     $scope.error.noData = "error: Bad request. Please check URL parameters.";
   });
   
 
-  
   $scope.updateBinningValues = function(){
     iconColoring.setBinning($scope.binning);
     $scope.markers = iconColoring.updateMarkers($scope.markers, medianFinder.getChannels());
     $scope.icons = iconColoring.getBins();
-    console.log($scope.binning)
+    // console.log($scope.binning)
   }
-  
 
   $scope.goBack = function(){
     //grab edited params

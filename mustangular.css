@@ -93,7 +93,9 @@ li.included{
 label {
 /*  font-weight: bold;*/
 }
-
+h2 p{
+  display: inline;
+}
 #colorpicker {
   float:left;
   width:200px;
