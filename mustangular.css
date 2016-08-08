@@ -1,6 +1,15 @@
+
+body {
+    padding: 0;
+    margin: 0;
+}
+html, body, #map {
+    height: 100%;
+}
 #map{
+  width:50%;
   float:left;
-  margin: 5px;
+  margin: 10px;
 }
 
 li.included{
@@ -30,7 +39,7 @@ li.included{
   border: 1px solid black;
 }
 
-md-checkbox.md-checked.layer-toggle ._md-icon {
+md-checkbox.md-checked.layer-toggle .md-icon {
  background-color: transparent !important;
 /* background-color: rgba(0, 255, 0, 0.87);*/
  border-width: 1px;
@@ -43,12 +52,14 @@ tr[disabled="disabled"] {
 }
 #controls {
   min-height: 200px;
+  height: 100%;
 }
 .tooltip {
   display:inline-block;
 }
-.tooltip md-icon{
-    height:15px;
+.tooltip md-icon svg{
+    height:18px;
+    width: 18px;
 }
 .values p{
   margin: 0px;

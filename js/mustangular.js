@@ -423,24 +423,15 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     noData: "Waiting for data."
   }
 
+  $scope.status = '  ';
+  // $scope.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
 
-  function DialogController($scope, $mdDialog) {
-    $scope.hide = function() {
-      $mdDialog.hide();
-    };
-    $scope.cancel = function() {
-      $mdDialog.cancel();
-    };
-    $scope.answer = function(answer) {
-      $mdDialog.hide(answer);
-    };
-  }
   
   $scope.showAlert = function(ev){
     $mdDialog.show({
       controller: DialogController,
       contentElement: '#moreInfo',
-      parent: angular.element(document.body),
+      parent: "#controls",
       targetEvent: ev,
       clickOutsideToClose: true
     });
@@ -586,6 +577,18 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
   }
 
 });
+
+function DialogController($scope, $mdDialog) {
+  $scope.hide = function() {
+    $mdDialog.hide();
+  };
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+  $scope.answer = function(answer) {
+    $mdDialog.hide(answer);
+  };
+}
 
 //Disable default debugging output on leaflet
 app2.config(function($logProvider){
