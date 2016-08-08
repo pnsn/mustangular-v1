@@ -17,10 +17,12 @@
    <script src="js/mustangular.js"></script>
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
 </head>
-<body ng-app="myApp" ng-controller="formCtrl" ng-cloak>
+<body ng-app="myApp" ng-controller="formCtrl" ng-cloak layout="row" layout-align="center none">
 
 <md-content layout-padding flex="50">
-   <form ng-submit="submit(a)" autocomplete="on">
+   <h1 class="md-display-2">
+      <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>Mustangular V0.4</h1>
+   <form name="mainform" ng-submit="mainform.$valid && submit(a)" autocomplete="on">
       <md-input-container class="md-block" >
          <label> Network </label>
          <input ng-model=a.net>
@@ -39,7 +41,7 @@
       </md-input-container>
       <md-input-container class="md-block">
          <label> Quality </label>
-         <input ng-model=a.net>
+         <input ng-model=a.qual>
       </md-input-container>
          <md-datepicker ng-model="a.timewindow.start" md-placeholder="Enter start date" md-max-date="maxDate" ng-change="dateChange()"></md-datepicker> <!-- {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}}      -->
          <md-datepicker ng-model="a.timewindow.stop" md-placeholder="Enter end date" ng-change="fixTime()" md-max-date="maxDate" ></md-datepicker> <!-- {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} --> 

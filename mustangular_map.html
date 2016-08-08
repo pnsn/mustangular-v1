@@ -26,15 +26,18 @@
    <!-- <link rel="stylesheet" type="text/css" href="mustangular.css"></link> -->
    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
-<body ng-app="myApp2" ng-controller="SimpleMapController">
-   <leaflet id="map" markers="markers" layers="layers"> <!--full screen map!--> </leaflet>
+<!--TODO: map renders like its whole screen -->
+<body ng-app="myApp2" ng-controller="SimpleMapController" layout="row" layout-xs="column">
+   <div id="mapParent">
+      <leaflet id="map" markers="markers" layers="layers"> <!--full screen map!--> </leaflet>
+   </div>
    <md-content id="controls" layout-padding>
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
       <p class="error" ng-show="!error.data">{{error.noData}}</p>
       <md-progress-circular ng-show="!error.data" md-mode="indeterminate"></md-progress-circular>
-   
+<!--TODO: display gif only when working -->
 
-      <div ng-show="error.data" layout="column">
+      <div ng-show="error.data">
          <div> 
             <h1 class="md-title"> Metric: {{metric.title}} 
                <md-button class="md-raised" ng-click="showAlert($event)"> More info</md-button>
@@ -45,12 +48,12 @@
             <div> There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.
             </div>
          </div>
-         <md-divider flex="50" ></md-divider>
+         <md-divider ></md-divider>
          <div>
             <h2 class="md-title"> Binning controls: 
                <div class="tooltip">
                   <md-icon md-svg-src="images/tooltip.svg"> 
-                  <md-tooltip md-direction="right">
+                  <md-tooltip md-direction="below">
                     Set the number bins and the range included in bins.
                   </md-tooltip>
                </div>
@@ -96,7 +99,7 @@
    <div id="key" ng-show="error.data">
       <h2 class="md-title"> Key:
          <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
-            <md-tooltip md-direction="right">
+            <md-tooltip md-direction="below">
               Click on the icon next to a range to toggle stations with values in that range.
             </md-tooltip>
          </div>
