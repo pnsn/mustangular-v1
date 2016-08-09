@@ -7,9 +7,14 @@ html, body, #mapParent {
     height: 100%;
 }
 #mapParent {
-  width:74%;
+  width:65%;
   padding:10px;
 }
+
+#titleblock{
+  padding-bottom: 10px;
+}
+
 #map{
   height:100%;
   width:100%;
