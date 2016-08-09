@@ -29,7 +29,7 @@
 <!--TODO: map renders like its whole screen -->
 <body ng-app="myApp2" ng-controller="SimpleMapController" layout="row" layout-xs="column">
    <div id="mapParent" flex-gt-sm="65" flex-sm="100">
-      <leaflet id="map" markers="markers" layers="layers"> <!--full screen map!--> </leaflet>
+      <leaflet id="map" markers="markers" layers="layers"></leaflet>
    </div>
    <md-content id="controls" layout-padding>
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
@@ -65,7 +65,7 @@
          
          <md-input-container class="md-block controls">
             <label> Max binning value:</label>
-            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min}}" flex="50">
+            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min + 1}}" flex="50">
             <!-- <div class="tooltip"><md-icon class="tooltip" md-svg-src="images/tooltip.svg">
                <md-tooltip md-direction="below">
                  Values above {{binning.max}} will be not be included in the bins.
@@ -76,7 +76,7 @@
 
          <md-input-container class="md-block controls">
             <label> Min binning value:</label>
-            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max="{{binning.max}}" flex="50">
+            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max="{{binning.max - 1}}" flex="50">
             <!-- <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
                <md-tooltip md-direction="below">
                  Values above {{binning.min}} will be not be included in the bins.

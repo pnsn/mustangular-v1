@@ -23,6 +23,10 @@ html, body {
   width: 100%;
   float:left;
 }
+.leaflet-control-layers{
+  display:none;
+}
+
 h1.md-display-2{
   margin: 10px 0px;
 }

@@ -169,19 +169,30 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
   this.updateMarkers = function(markers, stations){
     for(var i = 0; i < Object.keys(markers).length; i++) {     
       var m = markers[Object.keys(markers)[i]];
-      m.icon.html = this.getIcon(stations[Object.keys(markers)[i]].max).icon;
-      m.layer = this.getIcon(stations[Object.keys(markers)[i]].max).layer;
+      var io = this.getIcon(stations[Object.keys(markers)[i]].max);
+      m.icon.html = io.icon;
+      m.layer = io.layer;
       markers[Object.keys(markers)[i]] = m;
     }
     return markers;
   }
   
   this.intitalBinning = function(percentile){
-    var val = Math.round((percentile/100.00 * _edges.count));
-    // console.log(val)
-    var min = _edges.min > 0 ? _edges.min : 0;
+    var val;
+    var max;
+    var min;
+    if(_edges.count>1){
+      var val = Math.round((percentile/100.00 * _edges.count));
+      // console.log(val)
+      min = _edges.min > 0 ? _edges.min : 0;
+      max = _edges.values[val]
+    } else {
+      min = _edges.values[0];
+      max = _edges.values[0] + 1;
+    }
     var count = _edges.max - _edges.min > _binning.count ? _binning.count : 1; //within 5 of eachother just make 1 bin
-    this.setBinning({max:_edges.values[val], min: min, count: count});
+    this.setBinning({max:max, min: min, count: count});
+
     // console.log(_binning)
   }
   
@@ -258,11 +269,11 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
     for(var i = 0; i < Object.keys(channels).length; i++) {
       if(Object.keys(channels)[i] != "max"){
         var first = Object.keys(channels)[i].charAt(0);
-        
+        string += "<li";
         if(first == "B" || first == "E" || first == "H"){ //TODO: figure out why REGEX not working
-          string += "<li class='included'>";
+          string += " class='included' >"
         } else {
-          string += "<li>";
+          string += ">";
         }
         string += Object.keys(channels)[i]+": "+ channels[Object.keys(channels)[i]].median+ "</li>"
       } 
@@ -405,7 +416,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
         return $scope.layers.overlays[type].visible && count > 0;
       },
   });
-  $scope.toggle = function(klass){
+  $scope.whatsMyName = function(klass){
     console.log(klass)
   }
   $scope.binning={
@@ -438,11 +449,8 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       clickOutsideToClose: true
     });
   }
-  
 
-
-  $http.jsonp(url + params + configs, {cache:true})
-  .success(function(data, status, headers, config){ //TODO: don't do this caching in prod
+  $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
     console.log(url+params + configs);
     if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
 
