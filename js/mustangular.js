@@ -249,9 +249,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
     
   this.getMessage = function(station, channels){
     //TODO: figure out why I have this channels array when the station already has that info
-    console.log(station)
     var string = "<ul>"
-    console.log(channels)
     string += "<li> Station: " + station.sta + "</li>" 
     + "<li> Displayed value: " + station.value 
     + "</li>" + "<li> Network: " + station.net + "</li>"
