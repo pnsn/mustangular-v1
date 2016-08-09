@@ -7,7 +7,7 @@ html, body, #mapParent {
     height: 100%;
 }
 #mapParent {
-  width:100%;
+  width:74%;
   padding:10px;
 }
 #map{

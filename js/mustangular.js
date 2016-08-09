@@ -420,7 +420,8 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
 
   $scope.error = {
     data: false,
-    noData: "Waiting for data."
+    noData: "Waiting for data.",
+    inProgress: true
   }
 
   $scope.status = '  ';
@@ -533,12 +534,13 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           var bounds = L.latLngBounds(latlngs);
           
           leafletData.getMap().then(function(map) {
-                  map.fitBounds(bounds);
+            map.fitBounds(bounds, {padding: [1,1]});
           });
           
           setTimeout(function(){
                   $scope.$broadcast('reCalcViewDimensions');
               }, 10);
+        $scope.error.inProgress = false;
         } else {
           //no data appears
           console.log("oops")
@@ -547,15 +549,19 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
 
       }, function error(response){
       // console.log(response);
+      $scope.error.inProgress = false;
         $scope.error.noData = "Error: Bad request. Please check URL parameters.";
       });
     } else if (Object.keys(data.measurements)[0] == "error") {
+      $scope.error.inProgress = false;
       $scope.error.noData = "Error: " + data.measurements[Object.keys(data.measurements)[0]][0].message;
     } else {
+      $scope.error.inProgress = false;
       $scope.error.noData = "Error: No data received."
     }
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
     console.log(data + " : " + status);
+    $scope.error.inProgress = false;
     $scope.error.noData = "error: Bad request. Please check URL parameters.";
   });
   

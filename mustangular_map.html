@@ -34,8 +34,7 @@
    <md-content id="controls" layout-padding>
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
       <p class="error" ng-show="!error.data">{{error.noData}}</p>
-      <md-progress-circular ng-show="!error.data" md-mode="indeterminate"></md-progress-circular>
-<!--TODO: display gif only when working -->
+      <md-progress-circular ng-show="error.inProgress" md-mode="indeterminate"></md-progress-circular>
 
       <div ng-show="error.data">
          <div> 
