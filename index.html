@@ -17,9 +17,9 @@
    <script src="js/mustangular.js"></script>
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
 </head>
-<body ng-app="myApp" ng-controller="formCtrl" ng-cloak layout="row" layout-align="center none">
+<body ng-app="myApp" ng-controller="formCtrl" ng-cloak layout="row" layout-align-gt-xs="center center" layout-align-xs="center none">
 
-<md-content layout-padding flex="50">
+<md-content layout-padding flex-gt-sm="50" flex-sm="75" class="md-whiteframe-6dp">
    <h1 class="md-display-2">
       <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>Mustangular V0.4</h1>
    <form name="mainform" ng-submit="mainform.$valid && submit(a)" autocomplete="on">

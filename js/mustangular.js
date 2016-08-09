@@ -248,7 +248,10 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
     }
     
   this.getMessage = function(station, channels){
+    //TODO: figure out why I have this channels array when the station already has that info
+    console.log(station)
     var string = "<ul>"
+    console.log(channels)
     string += "<li> Station: " + station.sta + "</li>" 
     + "<li> Displayed value: " + station.value 
     + "</li>" + "<li> Network: " + station.net + "</li>"
@@ -533,12 +536,18 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           
           var bounds = L.latLngBounds(latlngs);
           
-          leafletData.getMap().then(function(map) {
+          // var lMap = leafletData.getMap();
+          
+           leafletData.getMap().then(function(map) {
             map.fitBounds(bounds, {padding: [1,1]});
+            setTimeout(function(){
+              map.invalidateSize(); //Leaflet rechecks map size after load for proper centering
+            }, 20)
           });
           
           setTimeout(function(){
                   $scope.$broadcast('reCalcViewDimensions');
+                  // map.invalidateSize()
               }, 10);
         $scope.error.inProgress = false;
         } else {
@@ -552,6 +561,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       $scope.error.inProgress = false;
         $scope.error.noData = "Error: Bad request. Please check URL parameters.";
       });
+      
     } else if (Object.keys(data.measurements)[0] == "error") {
       $scope.error.inProgress = false;
       $scope.error.noData = "Error: " + data.measurements[Object.keys(data.measurements)[0]][0].message;

@@ -28,7 +28,7 @@
 </head>
 <!--TODO: map renders like its whole screen -->
 <body ng-app="myApp2" ng-controller="SimpleMapController" layout="row" layout-xs="column">
-   <div id="mapParent">
+   <div id="mapParent" flex-gt-sm="65" flex-sm="100">
       <leaflet id="map" markers="markers" layers="layers"> <!--full screen map!--> </leaflet>
    </div>
    <md-content id="controls" layout-padding>

@@ -3,11 +3,13 @@ body {
     padding: 0;
     margin: 0;
 }
-html, body, #mapParent {
+html, body {
     height: 100%;
+    width: 100%;
 }
 #mapParent {
-  width:65%;
+/*  width: ;*/
+  height: 100%;
   padding:10px;
 }
 
@@ -16,10 +18,25 @@ html, body, #mapParent {
 }
 
 #map{
+  
   height:100%;
-  width:100%;
+  width: 100%;
   float:left;
 }
+h1.md-display-2{
+  margin: 10px 0px;
+}
+
+.leaflet-popup ul{
+  list-style-type: none;
+  padding-left: 5px;
+
+}
+
+li.included{
+  background-color: rgba(140, 217, 63, 0.85);
+}
+
 h1 md-icon{
   height: 35px;
   width:35px;
@@ -27,9 +44,7 @@ h1 md-icon{
   margin-right:-4px;
 }
 
-li.included{
-  background-color: yellow;
-}
+
 
 .icon, .icon-outlier-high, .icon-outlier-low {
   border-radius: 7px;
@@ -66,7 +81,7 @@ tr[disabled="disabled"] {
   opacity: 0.5;
 }
 #controls {
-  min-height: 200px;
+  min-height: 300px;
   height: 100%;
   min-width:290px;
 }
