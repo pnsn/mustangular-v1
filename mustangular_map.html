@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <head>
-   <meta charset="UTF-8">
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
    <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
    
    <link rel="stylesheet" href="https://gitcdn.link/repo/angular/bower-material/master/angular-material.css">
+
 <!--required for angular material -->
    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-aria.min.js"></script>
@@ -14,29 +14,28 @@
    
    <!--TODO: remove dependency on master branch -->
    <script src="https://gitcdn.link/repo/angular/bower-material/master/angular-material.js"></script>
-   <!-- <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc5/angular-material.min.js"></script>
 
-   <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc5/angular-material.min.css"> -->
-<!--End Material stuff -->
+<!--End angular material stuff -->
    
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
    <script src="js/angular-leaflet-directive.js"></script>
-   <script src="js/mustangular.js"></script>
+   <script src="js/mustangular_map.js"></script>
    <script src="js/rainbowvis.js"></script>
-   <!-- <link rel="stylesheet" type="text/css" href="mustangular.css"></link> -->
-   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+   
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" charset="UTF-8"/>
 </head>
 <!--TODO: map renders like its whole screen -->
-<body ng-app="myApp2" ng-controller="SimpleMapController" layout="row" layout-xs="column">
+<body ng-app="mapApp" ng-controller="MapCtrl" layout="row" layout-xs="column">
    <div id="mapParent" flex-gt-sm="65" flex-sm="100">
       <leaflet id="map" markers="markers" layers="layers"></leaflet>
    </div>
    <md-content id="controls" layout-padding>
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
-      <p class="error" ng-show="!error.data">{{error.noData}}</p>
-      <md-progress-circular ng-show="error.inProgress" md-mode="indeterminate"></md-progress-circular>
+      <p class="error" ng-show="!status.data">{{status.message}}</p>
+      
+      <md-progress-circular ng-show="status.inProgress" md-mode="indeterminate"></md-progress-circular>
 
-      <div ng-show="error.data">
+      <div ng-show="status.data">
          <div id="titleblock"> 
             <h1 class="md-title"> Metric: {{metric.title}} 
                <md-button class="md-raised" ng-click="showAlert($event)"> More info</md-button>
@@ -95,16 +94,16 @@
             </div> -->
          </md-input-container >
       </div>
-   <div id="key" ng-show="error.data">
+   <div id="key" ng-show="status.data">
       <h2 class="md-title"> Key:
          <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
             <md-tooltip md-direction="right">
-              Toggle the stations using the icon.
+              Toggle the stations using the checkbox.
             </md-tooltip>
          </div>
       </h2>
       <table>
-         <tr><th>Icon</th><th>Range</th><th>Count</th></tr>
+         <tr><th>On/off</th><th>Range</th><th>Count</th></tr>
          <!-- <tr>
            <md-checkbox aria-label="Select All" ng-checked="isChecked()" md-indeterminate="isIndeterminate()" ng-click="toggleAll()">
              <span ng-if="isChecked()">Un-</span>Show All
@@ -123,9 +122,7 @@
             <td ng-if="icon.position == 0">{{icon.min | number:2}} - {{icon.max - 0.01 | number:2}}</td>
             <td ng-if="icon.position > 0">> {{icon.min | number:2}}</td>
             <td>{{icon.count}}</td>
-<!--Totally random way to calculate the icon width -->
-            
-            <td><div ng-if="icon.count > 0" class="histogram" style='width:{{Math.log(icon.count)*10}}px; background-color:#{{icon.color}}'></div></td>
+            <td><div ng-if="icon.count > 0" class="histogram" style='width:{{(icon.count)/5}}px; background-color:#{{icon.color}}'></div></td>
          </tr>
       </div>
       </table>

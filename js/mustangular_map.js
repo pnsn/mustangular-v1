@@ -1,165 +1,98 @@
-//Form 
-var app = angular.module('myApp', ['ngMaterial']);
+// Mustangular map 
+var mapApp = angular.module('mapApp', ['leaflet-directive', 'ngSanitize', 'ngMessages', 'ngMaterial']);
 
-app.config(['$locationProvider', function($locationProvider) {
-        $locationProvider.html5Mode({
-          enabled:true,
-          requireBase: false
-        });
-    }]);
-
-
-app.controller('formCtrl', function($scope, $window, $httpParamSerializer, $location, $http, $filter){
-  $scope.maxDate = new Date();
-  $scope.metrics = [];
-  $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=angular.callbacks._0", {cache:true}).success(function(data, status, headers, config){ 
-          // console.log(data.metrics)
-    for(var i = 0; i<data.metrics.length; i++){
-      // console.log(data.metrics[i].name)
-      // console.log(data.metrics[i].tables[0].columns[0])
-      var keys = Object.keys(data.metrics[i].tables[0].columns[0])
-      // console.log(data.metrics[i].tables[0].columns[0]["name"])
-      if(data.metrics[i].tables[0].columns[0]["name"] == "value" && data.metrics[i].tables[0].columns[0]["sqlType"] != "TEXT" ){
-        $scope.metrics.push( {
-          "metric" : data.metrics[i].name,
-          "title" : data.metrics[i].title
-        });
-      }
-
-    } 
-    // console.log($scope.metrics)
-    
-  }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
-    // console.log(data + " : " + status)
-  });
-
-  $scope.master = {};
-  $scope.dateChange = function(){
-    console.log($scope.myDate)
+//Finds the median of all the channels for each station and the max value for each station
+//in the metric and adds it to the station object
+mapApp.factory('medianFactory', function($filter){
+  //Object
+  var _channels = {};
+  
+  //Max and min values on map, all of the values on the map, count of the values on the map.
+  var _values = {
+    max: Number.MIN_SAFE_INTEGER,
+    min: Number.MAX_SAFE_INTEGER,
+    values: [],
+    count: 0
   };
-  $scope.submit = function(params) {
-    $scope.master = angular.copy(params);
-    // console.log(params.timewindow)
-    $scope.master.timewindow = params.timewindow.start && params.timewindow.stop ? $filter('date')(params.timewindow.start, 'yyyy-MM-ddTHH:mm:ss')+","+$filter('date')(params.timewindow.stop, 'yyyy-MM-ddTHH:mm:ss') : null
-    var par = $httpParamSerializer($scope.master);
-    // console.log("par" + par)
-    $window.location.href = "/mustangular/mustangular_map.html?" + par;
-  }
-  
-  function addMinutes(date, minutes) {
-      return new Date(date.getTime() + minutes*60000);
-  }
-  
-  $scope.fixTime = function(){
-    var time = $scope.a.timewindow
-    if(time.stop && time.stop.getHours() == "00" && time.stop.getMinutes()=="00"){
-      time.stop = new Date(time.stop.setHours(23,59,59));
-    }
-  }
-  
-  var params = $location.search();
-  if(params){
-    var time = {
-      start: params.timewindow? new Date(params.timewindow.split(",")[0]) : null,
-      stop: params.timewindow? new Date(params.timewindow.split(",")[1]) : null,
-    }
-    // console.log(time.stop)
-    //Spoof UTC in datetime input because js converts from UTC to local automatically
-    time.start = time.start ? addMinutes(time.start, time.start.getTimezoneOffset()) : null;
-    time.stop = time.stop ?  addMinutes(time.stop, time.stop.getTimezoneOffset()) : null;
-
-    $scope.a = {
-      net: params.net,
-      chan: params.chan,
-      sta: params.sta,
-      loc: params.loc,
-      qual: params.qual,
-      timewindow: {
-        start: time.start,
-        stop: time.stop
-      },
-      metric: params.metric
+  return {
+    //Finds the median for each channel in a station and the max for each station
+    findValues: function(metric){       
+      var keys = Object.keys(metric);
+      
+      //Go through each station in the metric
+      for (var i = 0; i < keys.length; i++){
+        var max = _values.max;
+        var chans = metric[keys[i]].chans;
+        var chanKeys = Object.keys(chans);
+        
+        //Go through each channel in a station
+        for(var j = 0; j < chanKeys.length; j++){
+          
+          //Order the values in the channel
+          var array = $filter('orderBy')(chans[chanKeys[j]]); 
+          
+          //Find the middle index value
+          var mid = array.length/2-.5;
+          
+          //Default to 0
+          var median = 0;
+          
+          //Check if it is a whole number, grab appropriate middle value from array
+          if(mid % 1 == 0){
+            median = array[mid];
+          } else {
+            median = (array[mid-.5]+array[mid-.5])/2;
+          }
+          
+          //For display purposes: only find and show max of the E*, H*, and B* channels
+          var first = chanKeys[j].charAt(0);
+          if(first == "B" || first == "E" || first == "H"){ 
+            max = Math.max(max, median);
+          }
+          
+          //Add median to the channel object
+          chans[chanKeys[j]].median = median;
+          
+        }
+        
+        //Add max of medians (this will be displayed value) to the station object
+        metric[keys[i]].value = max;
+        
+        //Add the station's max to the values
+        _values.values.push(max);
+        
+        //Add station's channels to channels object
+        _channels[metric[keys[i]].sta] = chans;
+        
+        //Add station's max to channels object
+        _channels[metric[keys[i]].sta].max = max;
+        
+        //Override the station's channels with updated information
+        metric[keys[i]].chans = chans;
+      }
+      
+      //Sort all of the values 
+      _values.values = $filter('orderBy')(_values.values);
+      
+      //Update the values
+      _values = {
+        max: _values.values[_values.values.length-1],
+        min: _values.values[0],
+        count: _values.values.length,
+        values: _values.values
+      }
+      return metric;
+    },
+    getChannels: function(){
+      return _channels;
+    },
+    getValues: function(){
+      return _values;
     }
   }
 });
 
-//Map
-var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessages', 'ngMaterial'], function($locationProvider){
-  $locationProvider.html5Mode({
-    enabled:true,
-    requireBase: false
-  });
-  
-})
-.factory('medianFinder', function($filter){
-  var _channels = {};
-  var _values = {
-    max: -1000,
-    min: 1000,
-    values: [],
-    count: 0
-  };
-    return {
-      findValues: function(metric){       
-        var keys = Object.keys(metric);
-        // console.log(metric)
-        // console.log(metric)
-        for (var i = 0; i < keys.length; i++){
-          var max = -1000;
-          // console.log(metric[keys[i]].chans)
-          var chans = metric[keys[i]].chans;
-          var chanKeys = Object.keys(chans);
-          // console.log(chanKeys)
-          for(var j = 0; j < chanKeys.length; j++){
-            var array = $filter('orderBy')(chans[chanKeys[j]]);
-            var mid = array.length/2-.5;
-            var median;
-            if(mid % 1 == 0){ //whole number  
-              median = array[mid];
-            } else {
-              median = (array[mid-.5]+array[mid-.5])/2;
-            }
-            if(!median){
-              median = 0;
-            }
-            var first = chanKeys[j].charAt(0);
-            if(first == "B" || first == "E" || first == "H"){ //for now: only allow B*, H*, and E* channels
-              max = Math.max(max, median);
-            }
-            // console.log(max)
-            // console.log(chans[chanKeys[j]])
-            chans[chanKeys[j]].median = median;
-            
-          }
-          metric[keys[i]].value = max;
-          _values.values.push(max);
-          _channels[metric[keys[i]].sta] = chans;
-          _channels[metric[keys[i]].sta].max = max;
-          metric[keys[i]].chans = chans;
-
-        }
-        _values.values = $filter('orderBy')(_values.values);
-        _values = {
-          max: _values.values[_values.values.length-1],
-          min: _values.values[0],
-          count: _values.values.length,
-          values: _values.values
-        }
-        // console.log(_values)
-        return metric;
-        
-      },
-      getChannels: function(){
-        return _channels;
-      },
-      getValues: function(){
-        return _values;
-      }
-    }
-
-  // }
-})
-.service('iconColoring', function($filter){
+mapApp.service('iconColoring', function($filter){
   var _edges = {max:-1000, min: 1000, count:0, values: []}
   var _binning = {max:10, count:3, min: 0, width: 2};
   var _bins;
@@ -258,14 +191,14 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
 
     }
     
-  this.getMessage = function(station, channels){
+  this.getMessage = function(station){
     //TODO: figure out why I have this channels array when the station already has that info
     var string = "<ul>"
     string += "<li> Station: " + station.sta + "</li>" 
     + "<li> Displayed value: " + station.value 
     + "</li>" + "<li> Network: " + station.net + "</li>"
     + "<li> Channel (median value): <ul>";
-    
+    var channels = station.chans;
     for(var i = 0; i < Object.keys(channels).length; i++) {
       if(Object.keys(channels)[i] != "max"){
         var first = Object.keys(channels)[i].charAt(0);
@@ -314,13 +247,13 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
   this.Binning = function(){
     return _binning;
   }
-})
+});
 
-.factory('metricsList', function($filter){
+mapApp.factory('metricFactory', function($filter){
   var _metrics = [];
   var _stations = [];
   var _combined = [];
-  var _latlons = [];
+  var _latlngs = [];
   return{
     getMetrics: function(){
       return _metrics;
@@ -338,7 +271,7 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
       return _stations;
     },
     getLatLngs: function(){
-      return _latlons;
+      return _latlngs;
     },
     combineLists: function(){
       // console.log("combine")
@@ -366,8 +299,8 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
                 // focus: true
               }
               
-              _latlons.push([parseFloat(metric.lat), parseFloat(metric.lng)])
-              // console.log(_latlons)
+              _latlngs.push([parseFloat(metric.lat), parseFloat(metric.lng)])
+              // console.log(_latlngs)
               // console.log(metric.chan)
               _combined[metric.sta].chans[metric.chan] = [metric.value];
               // console.log(_combined[metric.sta])
@@ -382,19 +315,17 @@ var app2 = angular.module('myApp2', ['leaflet-directive', 'ngSanitize', 'ngMessa
       return _combined;
     }
   }
-})
+});
 // add service to allow sharing of stations between controllers
 
   
 //TODO: split the current controller into a map controller and a controls controller for simplification
-app2.controller("SimpleMapController", function($scope, $window, $http, metricsList, iconColoring, medianFinder, leafletBoundsHelpers, leafletData, $mdDialog) {
-  $scope.Math = window.Math;
+mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, iconColoring, medianFactory, leafletBoundsHelpers, leafletData, $mdDialog, $timeout) {
+  $scope.Math = $window.Math;
   angular.extend($scope, {
-      markers: {
-        
-      },
+      markers: {},
       defaults: {
-          scrollWheelZoom: false
+        scrollWheelZoom: false
       },
       layers: {
         baselayers: {
@@ -404,39 +335,36 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
               type: 'xyz'
           }
         },
-        overlays: {
-          
-        }
+        overlays: { }
       },
-      toggleLayer: function(type)
-      {
+      toggleLayer: function(type) {
           $scope.layers.overlays[type].visible = !$scope.layers.overlays[type].visible;
       },
       layerVisibility: function(type, count){
         return $scope.layers.overlays[type].visible && count > 0;
       },
   });
-  $scope.whatsMyName = function(klass){
-    console.log(klass)
-  }
   $scope.binning={
     min: 0,
     max: 10
   }
+  
+  //Strip out empty params
+  var params = $window.location.search
+    .replace(/&\w*=&/g, '&')
+    .replace(/&\w*=$/gm, "")
+    .replace(/\?\w*=&/gm, "?");
 
-  var params = $window.location.search.replace(/&\w*=&/g, '&');
-  params=params.replace(/&\w*=$/gm, ""); //strip out empty params
-  params=params.replace(/\?\w*=&/gm, "?");
   var url = 'http://service.iris.edu/mustang/measurements/1/query';
   var configs ='&output=jsonp&callback=JSON_CALLBACK';
 
-  $scope.error = {
-    data: false,
-    noData: "Waiting for data.",
-    inProgress: true
+  $scope.status = {
+    data: false, //true when there is data
+    inProgress: true, //false when the processing is done for better or for worse
+    message: "Waiting for data."
   }
 
-  $scope.status = '  ';
+  // $scope.status = '  ';
   // $scope.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
 
   
@@ -454,8 +382,8 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     console.log(url+params + configs);
     if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
 
-      $scope.error.noData ="Processing data."
-      metricsList.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
+      $scope.status.message ="Processing data."
+      metricFactory.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
       
       //Prettify the metric name
       var name = Object.keys(data.measurements)[0];
@@ -468,7 +396,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
       });
 
       $scope.stations=[];
-      // console.log(metricsList.getMetrics());
+      // console.log(metricFactory.getMetrics());
       var data;
       //net, sta, loc, chan, start, end,
       params = params.replace(/(timewindow|metric|qual)=[^&]*&?/ig,'')
@@ -480,36 +408,34 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
         // console.log(response.data);
         data = response.data.split('\n'); //Oth is the header
 
-        $scope.error.data = data[0].length > 0;
+        $scope.status.data = data[0].length > 0;
 
-        if($scope.error.data){
+        if($scope.status.data){
           var headers = data[0].split("#");
           headers = headers[1].split(" | ");
 
           for (var i = 1; i < data.length; i++){
-           // console.log(data.length-i)
             var station = data[i].split("|");
             var staObj = {};
             for (var j = 0; j < station.length; j++){
               staObj[headers[j].trim().toLowerCase()]=station[j];
             }
             $scope.stations.push(staObj);
-            metricsList.setStations(staObj, station[1]+"_"+station[0]);
+            metricFactory.setStations(staObj, station[1]+"_"+station[0]);
           }
-
-          // console.log("combine");
-          metricsList.combineLists();
-          var metric = metricsList.getCombined();
-          // console.log(metric)
+          
+          metricFactory.combineLists();
+          var metric = metricFactory.getCombined();
           var markers = [];
 
-          metric = medianFinder.findValues(metric);
-          iconColoring.setValues(medianFinder.getValues());
+          metric = medianFactory.findValues(metric);
+          iconColoring.setValues(medianFactory.getValues());
 
           iconColoring.intitalBinning(95);
 
           var metricKeys = Object.keys(metric);
-
+          
+          //Go through all the keys in the metric and create markers 
           for(var i = 0; i< metricKeys.length; i++){
             var m =  metric[metricKeys[i]];
             var symbol = iconColoring.getIcon(m.value);
@@ -517,7 +443,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
               layer: symbol.layer,
               lat: m.lat,
               lng: m.lng,
-              message: iconColoring.getMessage(m, medianFinder.getChannels()[m.sta]),
+              message: iconColoring.getMessage(m),
               icon: {
                 type:'div',
                 className: 'icon-plain',
@@ -525,10 +451,10 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
                 iconSize: null,
                 html: symbol.icon
               }
-
             }
           }
 
+          
           $scope.icons = iconColoring.getBins();
           $scope.binning = iconColoring.Binning();
           $scope.edges = iconColoring.getEdges();
@@ -538,7 +464,7 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           // console.log($scope.binning.width)
           leafletData.getMap();
 
-          var latlngs = metricsList.getLatLngs();
+          var latlngs = metricFactory.getLatLngs();
           
           var bounds = L.latLngBounds(latlngs);
           
@@ -546,16 +472,12 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
           
            leafletData.getMap().then(function(map) {
             map.fitBounds(bounds, {padding: [1,1]});
-            setTimeout(function(){
+            $timeout(function(){
               map.invalidateSize(); //Leaflet rechecks map size after load for proper centering
             }, 20)
           });
           
-          setTimeout(function(){
-                  $scope.$broadcast('reCalcViewDimensions');
-                  // map.invalidateSize()
-              }, 10);
-        $scope.error.inProgress = false;
+        $scope.status.inProgress = false;
         } else {
           //no data appears
           console.log("oops")
@@ -564,27 +486,27 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
 
       }, function error(response){
       // console.log(response);
-      $scope.error.inProgress = false;
-        $scope.error.noData = "Error: Bad request. Please check URL parameters.";
+      $scope.status.inProgress = false;
+        $scope.status.message = "Error: Bad request. Please check URL parameters.";
       });
       
     } else if (Object.keys(data.measurements)[0] == "error") {
-      $scope.error.inProgress = false;
-      $scope.error.noData = "Error: " + data.measurements[Object.keys(data.measurements)[0]][0].message;
+      $scope.status.inProgress = false;
+      $scope.status.message = "Error: " + data.measurements[Object.keys(data.measurements)[0]][0].message;
     } else {
-      $scope.error.inProgress = false;
-      $scope.error.noData = "Error: No data received."
+      $scope.status.inProgress = false;
+      $scope.status.message = "Error: No data received."
     }
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
     console.log(data + " : " + status);
-    $scope.error.inProgress = false;
-    $scope.error.noData = "error: Bad request. Please check URL parameters.";
+    $scope.status.inProgress = false;
+    $scope.status.message = "error: Bad request. Please check URL parameters.";
   });
   
 
   $scope.updateBinningValues = function(){
     iconColoring.setBinning($scope.binning);
-    $scope.markers = iconColoring.updateMarkers($scope.markers, medianFinder.getChannels());
+    $scope.markers = iconColoring.updateMarkers($scope.markers, medianFactory.getChannels());
     $scope.icons = iconColoring.getBins();
     $scope.layers.overlays = iconColoring.getLayers();
     // console.log($scope.binning)
@@ -595,11 +517,13 @@ app2.controller("SimpleMapController", function($scope, $window, $http, metricsL
     var params = $window.location.search.replace(/&\w*=&/g, '&');
     params=params.replace(/&\w*=$/gm, ""); //strip out empty params
     params=params.replace(/\?\w*=&/gm, "?");
-    window.location = "/mustangular" + params;
+    $window.location = "/mustangular" + params;
   }
 
 });
 
+
+//Required for angular material dialog 
 function DialogController($scope, $mdDialog) {
   $scope.hide = function() {
     $mdDialog.hide();
@@ -612,7 +536,12 @@ function DialogController($scope, $mdDialog) {
   };
 }
 
-//Disable default debugging output on leaflet
-app2.config(function($logProvider){
+//Disables default debugging output on angular leaflet
+mapApp.config(['$logProvider', '$locationProvider',function($logProvider, $locationProvider){
   $logProvider.debugEnabled(false);
-});
+  
+  $locationProvider.html5Mode({
+    enabled:true,
+    requireBase: false
+  });
+}]);

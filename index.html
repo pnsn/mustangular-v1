@@ -14,44 +14,46 @@
    <link rel="stylesheet" href="https://gitcdn.link/repo/angular/bower-material/master/angular-material.css">
    <!-- <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css"> -->
-   <script src="js/mustangular.js"></script>
+   <script src="js/mustangular_form.js"></script>
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
 </head>
-<body ng-app="myApp" ng-controller="formCtrl" ng-cloak layout="row" layout-align-gt-xs="center center" layout-align-xs="center none">
+<body ng-app="formApp" ng-controller="FormCtrl" ng-cloak layout="row" layout-align-gt-xs="center stretch" layout-align-xs="center none">
 
 <md-content layout-padding flex-gt-sm="50" flex-sm="75" class="md-whiteframe-6dp">
    <h1 class="md-display-2">
-      <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>Mustangular V0.4</h1>
-   <form name="mainform" ng-submit="mainform.$valid && submit(a)" autocomplete="on">
+      <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>Mustangular V0.5</h1>
+   <form name="mainForm" ng-submit="mainForm.$valid && submit(snclq)" autocomplete="on">
       <md-input-container class="md-block" >
          <label> Network </label>
-         <input ng-model=a.net>
+         <input ng-model="snclq.net" ng-change="snclq.net = snclq.net.toUpperCase();"> 
       </md-input-container >
       <md-input-container class="md-block">
          <label> Channel </label>
-         <input ng-model=a.chan>
+         <input ng-model="snclq.chan" ng-change="snclq.chan = snclq.chan.toUpperCase();">
       </md-input-container>
       <md-input-container class="md-block">
          <label> Station </label>
-         <input ng-model=a.sta>
+         <input ng-model="snclq.sta" ng-change="snclq.sta = snclq.sta.toUpperCase();">
       </md-input-container>
       <md-input-container class="md-block">
          <label> Location </label>
-         <input ng-model=a.loc>
+         <input ng-model="snclq.loc">
       </md-input-container>
       <md-input-container class="md-block">
          <label> Quality </label>
-         <input ng-model=a.qual>
+         <input ng-model="snclq.qual" ng-change="snclq.qual = snclq.qual.toUpperCase();">
       </md-input-container>
-         <md-datepicker ng-model="a.timewindow.start" md-placeholder="Enter start date" md-max-date="maxDate" ng-change="dateChange()"></md-datepicker> <!-- {{a.timewindow.start | date:'yyyy-MM-ddTHH:mm:ss'}}      -->
-         <md-datepicker ng-model="a.timewindow.stop" md-placeholder="Enter end date" ng-change="fixTime()" md-max-date="maxDate" ></md-datepicker> <!-- {{a.timewindow.stop | date: 'yyyy-MM-ddTHH:mm:ss'}} --> 
+         <md-datepicker ng-model="snclq.timewindow.start" md-placeholder="Start date" md-max-date="maxDate"></md-datepicker>
+         <md-datepicker ng-model="snclq.timewindow.stop" md-placeholder="End date" ng-change="fixTime()" md-max-date="maxDate" ></md-datepicker>
+         <label>MM/DD/YYYY</label>
       <md-input-container class="md-block">
          <label>Metric</label>
-         <md-select ng-model="a.metric" id="metric" required>
+         <md-select ng-model="snclq.metric" id="metric" required>
             <md-option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</md-option>
          </md-select>
       </md-input-container>  
-      <md-button type="submit" class="md-raised md-primary">Submit</md-button> 
+      <md-button type="submit" class="md-raised md-primary">Submit</md-button>
+      <p>Unspecified values will act as wildcards.</p>
    </form>
 </md-content>
 
