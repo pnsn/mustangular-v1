@@ -97,7 +97,7 @@ formApp.controller('FormCtrl', ['$scope', '$window', '$httpParamSerializer', '$l
       metric: params.metric
     };
   }
-});
+}]);
 
 formApp.config(['$locationProvider',function($locationProvider) {
   $locationProvider.html5Mode({

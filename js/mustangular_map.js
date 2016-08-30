@@ -348,26 +348,13 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
     min: 0,
     max: 10
   }
-  
-  //Strip out empty params
-  var params = $window.location.search
-    .replace(/&\w*=&/g, '&')
-    .replace(/&\w*=$/gm, "")
-    .replace(/\?\w*=&/gm, "?");
-
-  var url = 'http://service.iris.edu/mustang/measurements/1/query';
-  var configs ='&output=jsonp&callback=JSON_CALLBACK';
 
   $scope.status = {
-    data: false, //true when there is data
-    inProgress: true, //false when the processing is done for better or for worse
+    data: false,
+    inProgress: true,
     message: "Waiting for data."
   }
 
-  // $scope.status = '  ';
-  // $scope.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
-
-  
   $scope.showAlert = function(ev){
     $mdDialog.show({
       controller: DialogController,
@@ -378,10 +365,20 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
     });
   }
 
-  $http.jsonp(url + params + configs, {cache:true}).success(function(data, status, headers, config){ //TODO: don't do this caching in prod
-    console.log(url+params + configs);
-    if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
+  //Strip out empty params
+  $scope.params = $window.location.search
+    .replace(/&\w*=&/g, '&')
+    .replace(/&\w*=$/gm, "")
+    .replace(/\?\w*=&/gm, "?");
 
+  var url = 'http://service.iris.edu/mustang/measurements/1/query';
+  var configs ='&output=jsonp&callback=JSON_CALLBACK';
+
+  $http.jsonp(url + $scope.params + configs, {cache:true})
+  .success(function(data, status, headers, config){ //TODO: don't do this caching in prod
+    console.log(url+$scope.params + configs);
+    
+    if(Object.keys(data.measurements)[0] != "error" && data.measurements[Object.keys(data.measurements)[0]].length > 0){
       $scope.status.message ="Processing data."
       metricFactory.setMetrics(data.measurements[Object.keys(data.measurements)[0]]); //TODO: allow other metrics by having a selector & multiple layers
       
@@ -390,22 +387,20 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
       $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?metric="+name+"&output=jsonp&callback=JSON_CALLBACK", {cache:true})
         .success(function(data, status, headers, config){
           $scope.metric = data.metrics[0];
-          // console.log(data.metrics);
       }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
-        // console.log(data + " : " + status);
+
       });
 
       $scope.stations=[];
-      // console.log(metricFactory.getMetrics());
+
       var data;
+      
       //net, sta, loc, chan, start, end,
-      params = params.replace(/(timewindow|metric|qual)=[^&]*&?/ig,'')
-      params = params.replace(/chan/ig,'cha')
-      params = params.replace(/qual=[^&]*/ig, '')
-      // params = params.replace(/timewindow=*/ig,'')
-      // console.log(params)
+      var params = $scope.params.replace(/(timewindow|metric|qual)=[^&]*&?/ig,'')
+        .replace(/chan/ig,'cha')
+        .replace(/qual=[^&]*/ig, '');
+
       $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
-        // console.log(response.data);
         data = response.data.split('\n'); //Oth is the header
 
         $scope.status.data = data[0].length > 0;
@@ -461,14 +456,12 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
           $scope.markers = markers;
           
           $scope.layers.overlays = iconColoring.getLayers();
-          // console.log($scope.binning.width)
+
           leafletData.getMap();
 
           var latlngs = metricFactory.getLatLngs();
           
           var bounds = L.latLngBounds(latlngs);
-          
-          // var lMap = leafletData.getMap();
           
            leafletData.getMap().then(function(map) {
             map.fitBounds(bounds, {padding: [1,1]});
@@ -479,13 +472,12 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
           
         $scope.status.inProgress = false;
         } else {
-          //no data appears
+
           console.log("oops")
 
         }
 
       }, function error(response){
-      // console.log(response);
       $scope.status.inProgress = false;
         $scope.status.message = "Error: Bad request. Please check URL parameters.";
       });
@@ -498,7 +490,6 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
       $scope.status.message = "Error: No data received."
     }
   }).error(function(data, status, headers, config){ //Doesn't get triggered if the metric array is empty or an error
-    console.log(data + " : " + status);
     $scope.status.inProgress = false;
     $scope.status.message = "error: Bad request. Please check URL parameters.";
   });
@@ -509,15 +500,10 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
     $scope.markers = iconColoring.updateMarkers($scope.markers, medianFactory.getChannels());
     $scope.icons = iconColoring.getBins();
     $scope.layers.overlays = iconColoring.getLayers();
-    // console.log($scope.binning)
   }
 
   $scope.goBack = function(){
-    //grab edited params
-    var params = $window.location.search.replace(/&\w*=&/g, '&');
-    params=params.replace(/&\w*=$/gm, ""); //strip out empty params
-    params=params.replace(/\?\w*=&/gm, "?");
-    $window.location = "/mustangular" + params;
+    $window.location = "/mustangular" + $scope.params;
   }
 
 });
