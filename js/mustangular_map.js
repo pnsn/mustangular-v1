@@ -402,7 +402,7 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
 
       $http.get('http://service.iris.edu/fdsnws/station/1/query'+params+'&format=text').then(function success(response){
         data = response.data.split('\n'); //Oth is the header
-
+        //start: put all this in metric factory.
         $scope.status.data = data[0].length > 0;
 
         if($scope.status.data){
@@ -420,9 +420,10 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
           }
           
           metricFactory.combineLists();
+          //end: put all this in metric factory
           var metric = metricFactory.getCombined();
           var markers = [];
-
+          
           metric = medianFactory.findValues(metric);
           iconColoring.setValues(medianFactory.getValues());
 
@@ -494,7 +495,8 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
     $scope.status.message = "error: Bad request. Please check URL parameters.";
   });
   
-
+  
+  
   $scope.updateBinningValues = function(){
     iconColoring.setBinning($scope.binning);
     $scope.markers = iconColoring.updateMarkers($scope.markers, medianFactory.getChannels());
@@ -502,6 +504,8 @@ mapApp.controller("MapCtrl", function($scope, $window, $http, metricFactory, ico
     $scope.layers.overlays = iconColoring.getLayers();
   }
 
+
+  //Return to form
   $scope.goBack = function(){
     $window.location = "/mustangular" + $scope.params;
   }

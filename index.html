@@ -16,6 +16,7 @@
    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css"> -->
    <script src="js/mustangular_form.js"></script>
    <link rel="stylesheet" type="text/css" href="mustangular.css"></link>
+   <link rel="icon" type="image/png" href="images/mustangular_favicon.png"/>
 </head>
 <body ng-app="formApp" ng-controller="FormCtrl" ng-cloak layout="row" layout-align-gt-xs="center stretch" layout-align-xs="center none">
 
@@ -44,7 +45,7 @@
          <input ng-model="snclq.qual" ng-change="snclq.qual = snclq.qual.toUpperCase();">
       </md-input-container>
          <md-datepicker ng-model="snclq.timewindow.start" md-placeholder="Start date" md-max-date="maxDate"></md-datepicker>
-         <md-datepicker ng-model="snclq.timewindow.stop" md-placeholder="End date" ng-change="fixTime()" md-max-date="maxDate" ></md-datepicker>
+         <md-datepicker ng-model="snclq.timewindow.stop" md-placeholder="End date" ng-change="fixTime(snclq.timewindow.stop)" md-max-date="maxDate" ></md-datepicker>
          <label>MM/DD/YYYY</label>
       <md-input-container class="md-block">
          <label>Metric</label>
