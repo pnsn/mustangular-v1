@@ -44,8 +44,8 @@
          <label> Quality </label>
          <input ng-model="snclq.qual" ng-change="snclq.qual = snclq.qual.toUpperCase();">
       </md-input-container>
-         <md-datepicker ng-model="snclq.timewindow.start" md-placeholder="Start date" md-max-date="maxDate"></md-datepicker>
-         <md-datepicker ng-model="snclq.timewindow.stop" md-placeholder="End date" ng-change="fixTime(snclq.timewindow.stop)" md-max-date="maxDate" ></md-datepicker>
+         <md-datepicker ng-model="snclq.timewindow.start" md-placeholder="Start date" md-max-date="maxDate" required></md-datepicker>
+         <md-datepicker ng-model="snclq.timewindow.stop" md-placeholder="End date" ng-change="fixTime(snclq.timewindow.stop)" md-max-date="maxDate" required></md-datepicker>
          <label>MM/DD/YYYY</label>
       <md-input-container class="md-block">
          <label>Metric</label>

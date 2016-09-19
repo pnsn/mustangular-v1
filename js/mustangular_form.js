@@ -24,7 +24,7 @@ formApp.provider('metricsProvider', function(){
       if(data.metrics[i].tables[0].columns[0]["name"] == "value" && data.metrics[i].tables[0].columns[0]["sqlType"] != "TEXT" ){
         _metrics.push( {
           "metric" : data.metrics[i].name,
-          "title" : data.metrics[i].title
+          "title" : data.metrics[i].title.replace(/[ ]Metric$/, "")
         });
       }
     } 

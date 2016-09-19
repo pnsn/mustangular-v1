@@ -29,10 +29,10 @@
 </head>
 <!--TODO: map renders like its whole screen -->
 <body ng-app="mapApp" layout="row" layout-xs="column" ng-controller="MainCtrl">
-   <div id="mapParent" flex-gt-sm="65" flex-sm="100">
+   <div id="mapParent" flex-gt-sm="70" flex-sm="100">
       <leaflet id="map" markers="markers" layers="layers"></leaflet>
    </div>
-   <md-content id="controls" layout-padding >
+   <md-content id="controls" layout-padding flex-gt-sm="30" flex-sm="100">
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
       <p class="error" ng-show="!status.hasData || status.inProgress">{{status.message}}</p>
       
@@ -49,7 +49,7 @@
             <div> There {{data.count == "1" ? "is " + data.count + " station" : "are " + data.count + " stations" }} on the map.
             </div>
          </div>
-         <md-divider ></md-divider>
+         <md-divider></md-divider>
          <div>
             <h2 class="md-title"> Binning controls: 
                <div class="tooltip">
@@ -66,13 +66,13 @@
          </div>
          
          <md-input-container class="md-block controls">
-            <label> Max binning value:</label>
-            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min + 1}}" flex="50">
-         </md-input-container >
-
-         <md-input-container class="md-block controls">
             <label> Min binning value:</label>
             <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max="{{binning.max - 1}}" flex="50">
+         </md-input-container >
+         
+         <md-input-container class="md-block controls">
+            <label> Max binning value:</label>
+            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min + 1}}" flex="50">
          </md-input-container >
          
          <md-input-container class="md-block controls">
@@ -80,6 +80,7 @@
             <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1" max="25"  flex="50">
          </md-input-container >
       </div>
+      
    <div id="key" ng-show="status.hasData">
       <h2 class="md-title"> Key:
          <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
@@ -89,7 +90,16 @@
          </div>
       </h2>
       <table>
+         
          <tr><th>On/off</th><th>Range</th><th>Count</th></tr>
+         <tr>
+            <td>
+               <div class="icon-key toggle-all">
+                  <md-checkbox class="layer-toggle" aria-label="toggle all layers" ng-checked="allLayersVisible" ng-click="toggleAllLayers()"></md-checkbox>
+               </div>
+            </td>
+            <td>Toggle all stations</td>
+         </tr>
          <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}">
             <td>
                <div class="icon-key"  style='background-color:#{{bin.color}}'>

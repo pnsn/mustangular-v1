@@ -36,7 +36,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   this.getMetricInfo = function(query){
     return $http.jsonp(query + _metricName)
       .then(function(response){
-        //console.log(response.data)
+        response.data.metrics[0].title = response.data.metrics[0].title ? response.data.metrics[0].title.replace(/[ ]Metric$/, "") : "";
          return response.data.metrics ? response.data.metrics[0] : "";
        },
        function(response){
@@ -275,7 +275,7 @@ mapApp.service('MarkerMaker', function(){
       _bins.push({max: _binning.max, min:_binning.min, color: "1fd00a", count: 0, position:0, class:"icon-group-1"})
       
     }
-    _bins.push({max:_data.max, min: _binning.max, color:"7D26CD", count: 0, position: 1, class:"icon-group-" + (_binning.count+1)})
+    _bins.push({max:_data.max, min: _binning.max, color:"808080", count: 0, position: 1, class:"icon-group-" + (_binning.count+1)})
     _binning.bins = _bins;
   };
   
@@ -347,6 +347,7 @@ mapApp.service('MarkerMaker', function(){
 
 //TODO: split the current controller into a map controller and a controls controller for simplification
 mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout) {
+  
   //Strip out empty params
   var params = $window.location.search
     .replace(/&\w*=&/g, '&')
@@ -387,6 +388,14 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     },
     layerVisibility: function(type, count){
       return $scope.layers.overlays[type].visible && count > 0;
+    },
+    allLayersVisible: true,
+    toggleAllLayers:function(){
+      console.log("toggle")
+      angular.forEach($scope.layers.overlays, function(overlay){
+        overlay.visible = !$scope.allLayersVisible;
+      });
+      $scope.allLayersVisible = !$scope.allLayersVisible;
     }
   });
   
@@ -420,9 +429,7 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
           $scope.markers = MarkerMaker.getMarkers();
 
           $scope.status.inProgress = false;
-          
-          //  = updateBinningValues;
-          
+
           var bounds = L.latLngBounds(DataProcessor.getLatLngs());
           
            leafletData.getMap().then(function(map) {
@@ -451,7 +458,6 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
     $scope.markers = MarkerMaker.getMarkers();
-    
   }
 
 }]);
