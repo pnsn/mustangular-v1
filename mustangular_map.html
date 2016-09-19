@@ -4,7 +4,7 @@
    <script src="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.js"></script>
    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
    
-   <link rel="stylesheet" href="https://gitcdn.link/repo/angular/bower-material/master/angular-material.css">
+   <!-- <link rel="stylesheet" href="https://gitcdn.link/repo/angular/bower-material/master/angular-material.css"> -->
 
 <!--required for angular material -->
    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-animate.min.js"></script>
@@ -13,7 +13,9 @@
    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-messages.js"></script>
    
    <!--TODO: remove dependency on master branch -->
-   <script src="https://gitcdn.link/repo/angular/bower-material/master/angular-material.js"></script>
+   <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+   
+   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.css">
 
 <!--End angular material stuff -->
    
@@ -26,25 +28,25 @@
    <link rel="icon" type="image/png" href="images/mustangular_favicon.png"/>
 </head>
 <!--TODO: map renders like its whole screen -->
-<body ng-app="mapApp" ng-controller="MapCtrl" layout="row" layout-xs="column">
+<body ng-app="mapApp" layout="row" layout-xs="column" ng-controller="MainCtrl">
    <div id="mapParent" flex-gt-sm="65" flex-sm="100">
       <leaflet id="map" markers="markers" layers="layers"></leaflet>
    </div>
-   <md-content id="controls" layout-padding>
+   <md-content id="controls" layout-padding >
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
-      <p class="error" ng-show="!status.data">{{status.message}}</p>
+      <p class="error" ng-show="!status.hasData || status.inProgress">{{status.message}}</p>
       
       <md-progress-circular ng-show="status.inProgress" md-mode="indeterminate"></md-progress-circular>
 
-      <div ng-show="status.data">
+      <div ng-show="status.hasData && !status.inProgress">
          <div id="titleblock"> 
-            <h1 class="md-title"> Metric: {{metric.title}} 
+            <h1 class="md-title"> Metric: {{metricInfo.title}} 
                <md-button class="md-raised" ng-click="showAlert($event)"> More info</md-button>
             </h1>
             <div class="values md-subhead"> Values: 
-               <ng-bind-html ng-bind-html="metric.tables[0].columns[0].description"></ng-bind-html>
+               <ng-bind-html ng-bind-html="metricInfo.tables[0].columns[0].description"></ng-bind-html>
             </div>
-            <div> There {{edges.count == "1" ? "is " + edges.count + " station" : "are " + edges.count + " stations" }} on the map.
+            <div> There {{data.count == "1" ? "is " + data.count + " station" : "are " + data.count + " stations" }} on the map.
             </div>
          </div>
          <md-divider ></md-divider>
@@ -58,8 +60,8 @@
                </div>
             </h2>
         	   <div> Value range on map: 
-               <span>min: {{edges.min}}, </span>
-               <span>max: {{edges.max}} </span>
+               <span>min: {{data.min}}, </span>
+               <span>max: {{data.max}} </span>
             </div>
          </div>
          
@@ -78,7 +80,7 @@
             <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1" max="25"  flex="50">
          </md-input-container >
       </div>
-   <div id="key" ng-show="status.data">
+   <div id="key" ng-show="status.hasData">
       <h2 class="md-title"> Key:
          <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
             <md-tooltip md-direction="right">
@@ -88,20 +90,20 @@
       </h2>
       <table>
          <tr><th>On/off</th><th>Range</th><th>Count</th></tr>
-         <tr ng-repeat="icon in icons" ng-disabled="{{icon.count == 0}}">
+         <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}">
             <td>
-               <div class="icon-key"  style='background-color:#{{icon.color}}'>
-                  <md-checkbox ng-show="{{icon.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(icon.class, icon.count)" ng-click="toggleLayer(icon.class)"></md-checkbox>
-                  <md-tooltip md-direction="right" ng-if="icon.count == 0">
+               <div class="icon-key"  style='background-color:#{{bin.color}}'>
+                  <md-checkbox ng-show="{{bin.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(bin.class, bin.count)" ng-click="toggleLayer(bin.class)"></md-checkbox>
+                  <md-tooltip md-direction="right" ng-if="bin.count == 0">
                     There are no stations in this range.
                   </md-tooltip>
                </div>
             </td>
-            <td ng-if="icon.position < 0">< {{icon.max-0.01| number:2}}</td>
-            <td ng-if="icon.position == 0">{{icon.min | number:2}} - {{icon.max - 0.01 | number:2}}</td>
-            <td ng-if="icon.position > 0">> {{icon.min | number:2}}</td>
-            <td>{{icon.count}}</td>
-            <td><div ng-if="icon.count > 0" class="histogram" style='width:{{(icon.count)/5}}px; background-color:#{{icon.color}}'></div></td>
+            <td ng-if="bin.position < 0">< {{bin.max-0.01| number:2}}</td>
+            <td ng-if="bin.position == 0">{{bin.min | number:2}} - {{bin.max - 0.01 | number:2}}</td>
+            <td ng-if="bin.position > 0">> {{bin.min | number:2}}</td>
+            <td>{{bin.count}}</td>
+            <td><div ng-if="bin.count > 0" class="histogram" style='width:{{(bin.count)/5}}px; background-color:#{{bin.color}}'></div></td>
          </tr>
       </div>
       </table>
@@ -112,8 +114,8 @@
      <div class="md-dialog-container" id="moreInfo">
        <md-dialog layout-padding aria-label="Dialog">
           <md-dialog-content>
-             <h2 class="md-title">{{metric.title}}</h2>
-             <ng-bind-html ng-bind-html="metric.description"> </ng-bind-html>
+             <h2 class="md-title">{{metricInfo.title}}</h2>
+             <ng-bind-html ng-bind-html="metricInfo.description"> </ng-bind-html>
           </md-dialog-content>
        </md-dialog>
      </div>

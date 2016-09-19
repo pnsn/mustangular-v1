@@ -30,9 +30,9 @@ html, body {
   min-width:290px;
 }
 
-.leaflet-control-layers{
+/*.leaflet-control-layers{
   display:none;
-}
+}*/
 
 h1.md-display-2{
   margin: 10px 0px;
