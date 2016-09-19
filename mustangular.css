@@ -30,9 +30,9 @@ html, body {
   min-width:290px;
 }
 
-/*.leaflet-control-layers{
+.leaflet-control-layers-overlays{
   display:none;
-}*/
+}
 
 h1.md-display-2{
   margin: 10px 0px;
@@ -88,8 +88,6 @@ tr[disabled="disabled"] {
   color:#808080;
   opacity: 0.5;
 }
-
-
 
 .tooltip {
   display:inline-block;

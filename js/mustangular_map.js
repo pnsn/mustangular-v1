@@ -17,7 +17,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
           inProgress:false
         });           
       } else if(responseData.length > 0){
-        _metricName = response;
+        _metricName = responseText;
         deferred.resolve( {
           data:responseData,
           message:"Processing Data."
@@ -36,6 +36,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   this.getMetricInfo = function(query){
     return $http.jsonp(query + _metricName)
       .then(function(response){
+        //console.log(response.data)
          return response.data.metrics ? response.data.metrics[0] : "";
        },
        function(response){
@@ -197,27 +198,13 @@ mapApp.service('MarkerMaker', function(){
     bins: []
   };
   var _markers = [];
-  var _overlays = [];
+  var _overlays = {};
   var _stations;
   
   this.setData = function(data){
     _data = data;
   }
   
-  this.setBinning = function(binning){
-    var newBinning = findBinning();
-    _binning = {
-      max: binning.max ? binning.max : newBinning.max,
-      min: binning.min ? binning.min : newBinning.min,
-      count: binning.count ? binning.count : 1
-    }
-    _binning.width = (_binning.max - _binning.min) / _binning.count;
-    
-    makeBins();
-    makeOverlays();
-    makeMarkers();
-  };    
-          
   this.getMarkers = function(){
     return _markers;
   }  
@@ -234,15 +221,28 @@ mapApp.service('MarkerMaker', function(){
     _stations = stations;
   };
   
+  this.setBinning = function(binning){
+    var newBinning = findBinning();
+      _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
+      _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
+      _binning.count = (_data.max - _data.min > _data.count) && binning.count ? binning.count : _data.count;
+    _binning.width = (_binning.max - _binning.min) / _binning.count;
+    
+    makeBins();
+    makeOverlays();
+    makeMarkers();
+  };    
+          
   var findBinning = function() {
     var max, min;
     if(_data.count > 1){
+      // //console.log(_data)
       var val = Math.round(.95 * _data.count);
       min = _data.min > 0 ? _data.min : 0;
       max = val > 1 ? _data.values[val - 1] : _data.values[val];
     } else {
-      min = _data.values[0];
-      max = _data.values[0] + 1;
+      min = _data.min;
+      max = _data.max;
     }
     return {max:max, min:min}
   };
@@ -360,14 +360,14 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
   angular.extend($scope, {
     binning: {
       count: 3,
-      min: 0,
       bins: {}
     },
     data: {},
     status: { 
       hasData: false,
       inProgress: true,
-      message:"Waiting for data."},
+      message:"Waiting for data."
+    },
     defaults: {
       scrollWheelZoom: false
     },
@@ -385,8 +385,7 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     toggleLayer: function(type){
       $scope.layers.overlays[type].visible = !$scope.layers.overlays[type].visible;
     },
-    layerVisibilty : function(type, count){
-      console.log("caalll mee")
+    layerVisibility: function(type, count){
       return $scope.layers.overlays[type].visible && count > 0;
     }
   });
@@ -403,6 +402,7 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
       
       DataFinder.getMetricInfo("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=JSON_CALLBACK&metric=").then(function(metricInfo){
         $scope.metricInfo = metricInfo;
+        //console.log($scope.metricInfo)
       });
     
       DataFinder.getStationData("http://service.iris.edu/fdsnws/station/1/query"+params+"&format=text")
@@ -414,13 +414,15 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
           MarkerMaker.setData($scope.data);
           MarkerMaker.setStations(stations);
           MarkerMaker.setBinning($scope.binning)
-
+          
           $scope.binning = MarkerMaker.getBinning();
-          $scope.markers = MarkerMaker.getMarkers();
           $scope.layers.overlays = MarkerMaker.getOverlays();
-          console.log($scope.markers)
+          $scope.markers = MarkerMaker.getMarkers();
+
           $scope.status.inProgress = false;
-          $scope.updateBinningValues = updateBinningValues;
+          
+          //  = updateBinningValues;
+          
           var bounds = L.latLngBounds(DataProcessor.getLatLngs());
           
            leafletData.getMap().then(function(map) {
@@ -444,15 +446,28 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     });
   }
   
-  var updateBinningValues = function(){
-    console.log("update")
+  $scope.updateBinningValues = function(){
     MarkerMaker.setBinning($scope.binning);
-    $scope.markers = MarkerMaker.getMarkers();
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
+    $scope.markers = MarkerMaker.getMarkers();
+    
   }
 
 }]);
+
+//Required for angular material dialog 
+function DialogController($scope, $mdDialog) {
+  $scope.hide = function() {
+    $mdDialog.hide();
+  };
+  $scope.cancel = function() {
+    $mdDialog.cancel();
+  };
+  $scope.answer = function(answer) {
+    $mdDialog.hide(answer);
+  };
+}
 
 //Disables default debugging output on angular leaflet
 mapApp.config(['$logProvider', '$locationProvider',function($logProvider, $locationProvider){
