@@ -225,7 +225,7 @@ mapApp.service('MarkerMaker', function(){
     var newBinning = findBinning();
       _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
       _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
-      _binning.count = (_data.max - _data.min > _data.count) && binning.count ? binning.count : _data.count;
+      _binning.count =binning.count &&  _data.count > binning.count ? binning.count : _data.count;
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     
     makeBins();
