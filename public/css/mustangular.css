@@ -1,0 +1,114 @@
+body {
+    padding: 0;
+    margin: 0;
+    background-color:white;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+#mapParent {
+  height: 100%;
+  padding:10px;
+}
+
+#titleblock{
+  padding-bottom: 10px;
+}
+
+#map{
+  height:100%;
+  width: 100%;
+  float:left;
+}
+
+#controls {
+  min-height: 300px;
+  height: 100%;
+  min-width:290px;
+}
+
+.leaflet-control-layers{
+  display:none;
+}
+
+h1.md-display-2{
+  margin: 10px 0px;
+}
+
+.leaflet-popup ul{
+  list-style-type: none;
+  padding-left: 5px;
+
+}
+
+li.included{
+  background-color: rgba(140, 217, 63, 0.85);
+}
+
+h1 md-icon{
+  height: 35px;
+  width:35px;
+  margin-bottom:5px;
+  margin-right:-4px;
+}
+
+.icon, .icon-outlier-high, .icon-outlier-low {
+  border-radius: 7px;
+  height: 7px;
+  width: 7px;
+  border: 1px solid black;
+}
+
+#key{
+  height:auto;
+}
+
+#key td {
+  padding-left: 5px;
+}
+
+#key .icon-key {
+  width: 20px;
+}
+
+#key .icon-key, .histogram {
+  width:20px;
+  height:20px;
+  border: 1px solid black;
+}
+
+md-checkbox.md-checked.layer-toggle .md-icon {
+ background-color: transparent !important;
+ border-width: 1px;
+}
+
+.toggle-all {
+  opacity: 0.8;
+  border-bottom: 1px solid black;
+}
+
+.toggle-all .icon-key{
+  background-color: #7D26CD;
+}
+
+tr[disabled="disabled"] {
+  color:#808080;
+  opacity: 0.5;
+}
+
+.tooltip {
+  display:inline-block;
+}
+
+.tooltip md-icon svg{
+    height:18px;
+    width: 18px;
+}
+
+.values p{
+  margin: 0px;
+  display: inline;
+}
