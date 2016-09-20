@@ -28,7 +28,7 @@
    <link rel="icon" type="image/png" href="images/mustangular_favicon.png"/>
 </head>
 <!--TODO: map renders like its whole screen -->
-<body ng-app="mapApp" layout="row" layout-xs="column" ng-controller="MainCtrl">
+<body ng-app="mapApp" layout="row" layout-xs="column" ng-controller="MapCtrl">
    <div id="mapParent" flex-gt-sm="70" flex-sm="100">
       <leaflet id="map" markers="markers" layers="layers"></leaflet>
    </div>
@@ -67,12 +67,12 @@
          
          <md-input-container class="md-block controls">
             <label> Min binning value:</label>
-            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max="{{binning.max - 1}}" flex="50">
+            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max="{{binning.max - 1}}" min="{{data.min}}" flex="50">
          </md-input-container >
          
          <md-input-container class="md-block controls">
             <label> Max binning value:</label>
-            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min + 1}}" flex="50">
+            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min + 1}}" max="{{data.max}}" flex="50">
          </md-input-container >
          
          <md-input-container class="md-block controls">
@@ -92,13 +92,14 @@
       <table>
          
          <tr><th>On/off</th><th>Range</th><th>Count</th></tr>
-         <tr>
+         <tr class="toggle-all">
             <td>
-               <div class="icon-key toggle-all">
+               <div class="icon-key">
                   <md-checkbox class="layer-toggle" aria-label="toggle all layers" ng-checked="allLayersVisible" ng-click="toggleAllLayers()"></md-checkbox>
                </div>
             </td>
             <td>Toggle all stations</td>
+            <td>{{data.count}}</td>
          </tr>
          <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}">
             <td>
@@ -113,7 +114,7 @@
             <td ng-if="bin.position == 0">{{bin.min | number:2}} - {{bin.max - 0.01 | number:2}}</td>
             <td ng-if="bin.position > 0">> {{bin.min | number:2}}</td>
             <td>{{bin.count}}</td>
-            <td><div ng-if="bin.count > 0" class="histogram" style='width:{{(bin.count)/5}}px; background-color:#{{bin.color}}'></div></td>
+            <td><div ng-if="bin.count > 0" class="histogram" style='width:{{100*bin.count/data.count}}px; background-color:#{{bin.color}}'></div></td>
          </tr>
       </div>
       </table>

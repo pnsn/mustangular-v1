@@ -85,7 +85,12 @@ md-checkbox.md-checked.layer-toggle .md-icon {
  border-width: 1px;
 }
 
-.toggle-all.icon-key{
+.toggle-all {
+  opacity: 0.8;
+  border-bottom: 1px solid black;
+}
+
+.toggle-all .icon-key{
   background-color: #7D26CD;
 }
 

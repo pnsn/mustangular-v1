@@ -75,26 +75,32 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   
 }]);
 
+//Parses the text files for station coordinates, combines data into a single object,
+// calculates the medians for each station
 mapApp.service('DataProcessor', ["$filter", function($filter){
   var _stationData = [];
   var _latlngs = [];
   var _combinedData = {};
   var _data = {};
   
+  // Returns the combined datasets as one object
   this.getStations = function(stationData, metricData){
     stationProcessor(stationData);
     metricProcessor(metricData);
     return medianFinder(_combinedData);
   };
   
+  // Returns array of all the coordinates
   this.getLatLngs = function() {
     return _latlngs;
   };
   
+  // Returns the data {max, min, count, all values}
   this.getData = function( ){
     return _data;
   }
   
+  // Parses the text file and saves the station information
   var stationProcessor = function(stations){
     stations = stations.split('\n');
     var headers = stations[0].split("#");
@@ -112,6 +118,9 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
     }
   };
   
+  // Combines the multiple values for each station and channel into one station object
+  // that has multiple channels with multple values for each channel
+  // Adds latitude and longitude to each object
   var metricProcessor = function(data){
     for(var i = 0; i < data.length; i++){
       var key = data[i].net+"_"+data[i].sta;
@@ -146,6 +155,8 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
     }
   };
 
+  // Calculates the median value for each channel of each station
+  // Calculates the maximum value (of the chosen channels) for each station
   var medianFinder = function(stations){
     var values = [];
     angular.forEach(stations, function(station, key){
@@ -175,6 +186,7 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
         channel.median = median;
       });
       
+      // Set the displayed value for the station
       station.maxValue = maxValue;
       values.push(maxValue);
     });
@@ -192,47 +204,55 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
     
 }]);
 
+// Creates the bins and the icons used on the map
 mapApp.service('MarkerMaker', function(){
-  var _data = {};
+  var _data, _stations;
   var _binning = {
     bins: []
   };
   var _markers = [];
   var _overlays = {};
-  var _stations;
   
+  // Saves the data object
   this.setData = function(data){
     _data = data;
   }
   
+  // Returns calculated markers array
   this.getMarkers = function(){
     return _markers;
   }  
        
+  // Returns calculated overlays object
   this.getOverlays = function(){
     return _overlays;
   }
   
+  // Returns stored binning values
   this.getBinning = function(){
     return _binning;
   };
   
+  // Saves the station array
   this.setStations = function(stations){
     _stations = stations;
   };
   
+  // Sets the binning values from user or calculates new ones 
+  // Calls functions to make bins, overlays, and markers
   this.setBinning = function(binning){
     var newBinning = findBinning();
-      _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
-      _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
-      _binning.count =binning.count &&  _data.count > binning.count ? binning.count : _data.count;
+    _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
+    _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
+    _binning.count =binning.count &&  _data.count > binning.count ? binning.count : _data.count;
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     
     makeBins();
     makeOverlays();
     makeMarkers();
   };    
-          
+  
+  // Function sets initial values       
   var findBinning = function() {
     var max, min;
     if(_data.count > 1){
@@ -247,20 +267,24 @@ mapApp.service('MarkerMaker', function(){
     return {max:max, min:min}
   };
   
+  // Creates the bins, there is always a low outlier and high outlier
+  // Number of inner bins determined by user
+  // The specific colors used for the icons can be changed here
   var makeBins = function(){ 
     var _bins = []; 
     var min =  _binning.min;
+    
+    // Generates the color codes for each bin
     var rainbow = new Rainbow();
+    // Low outlier
     _bins.push({max:min, min: _data.min, color:"000", count:0, position:-1, class:"icon-group-0"})
     if(_binning.count > 1){
       rainbow.setNumberRange(0, _binning.count-1);
+      // Green to yellow to red spectrum for icons
       rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
       var max;
-      
       for (var i = 0; i < _binning.count; i++){
-
         max = min + _binning.width;
-      
         if(i == _binning.count - 1){
           _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0, position: 0,  class:"icon-group-" + (i + 1)});
         } else {
@@ -268,17 +292,17 @@ mapApp.service('MarkerMaker', function(){
         }
         min = max;
       }
-
-    
     } else {
-      
       _bins.push({max: _binning.max, min:_binning.min, color: "1fd00a", count: 0, position:0, class:"icon-group-1"})
-      
     }
+    // High outlier
     _bins.push({max:_data.max, min: _binning.max, color:"808080", count: 0, position: 1, class:"icon-group-" + (_binning.count+1)})
+    
+    // Array of all of the bins used.
     _binning.bins = _bins;
   };
   
+  // Creates an overlay for each bin
   var makeOverlays = function(){
     for(var i = 0; i < _binning.bins.length; i++){
       _overlays[_binning.bins[i].class] = {
@@ -289,26 +313,28 @@ mapApp.service('MarkerMaker', function(){
     }
   };
   
+  // Makes all of the markers for the map, styling is determined by CSS
   var makeMarkers = function(){
     angular.forEach(_stations, function(station, key){
       var symbol = makeIcon(station.maxValue);
-      _markers[key]={
+    _markers[key]={
         layer: symbol.layer,
         lat: station.lat,
         lng: station.lng,
         message: makeMessage(station),
         icon: {
-          type:'div',
+          type:'div', // Icon is styled by CSS
           className: 'icon-plain',
           iconSize: null,
           html: symbol.icon,
-          iconAnchor: [5, 5],
+          iconAnchor: [5, 5], // Make sure icon is centered over coordinates
           popupAnchor:  [-1, -5] 
         }
        } 
     });
   } 
       
+  // Sorts the station into a bin and outputs the corresponding icon and layer    
   var makeIcon = function(value){
       for (var i = 0; i < _binning.bins.length; i++){
         if(value >= _binning.bins[i].min && value < _binning.bins[i].max || ((i == _binning.bins.length - 1 || i == _binning.bins.length - 2) && value == _binning.bins[i].max)){
@@ -317,8 +343,9 @@ mapApp.service('MarkerMaker', function(){
         }
       }
 
-    }
+  }
     
+  // Makes the text inside the popup for each station
   var makeMessage = function(station){
     var string = "<ul>"
     string += "<li> Station: " + station.sta + "</li>" 
@@ -345,8 +372,8 @@ mapApp.service('MarkerMaker', function(){
   
 });
 
-//TODO: split the current controller into a map controller and a controls controller for simplification
-mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout) {
+// One Controller to rule them all. One Controller to find them, One Controller to bring them all and in the darkness bind them.
+mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout) {
   
   //Strip out empty params
   var params = $window.location.search
@@ -354,44 +381,45 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     .replace(/&\w*=$/gm, "")
     .replace(/\?\w*=&/gm, "?");
   
+  // Return to form
   $scope.goBack = function(){
     $window.location.href="/mustangular/" + params;
   };
   
+  // Initializes variables and sets up map
   angular.extend($scope, {
-    binning: {
-      count: 3,
+    binning: { // {max, min, count, array of bins}
+      count: 3, // Arbitrary number of bins to start with
       bins: {}
     },
-    data: {},
-    status: { 
+    data: {}, // {max, min, count, array of values}
+    status: { // Used to inform use of the state of processing
       hasData: false,
       inProgress: true,
       message:"Waiting for data."
     },
-    defaults: {
+    defaults: {// Map stuff
       scrollWheelZoom: false
     },
-    markers: {},
-    layers: {
+    markers: {}, // Markers for map, to be created
+    layers: { // Layers for map
       baselayers: {
-        osm: {
+        osm: { // Default base layer, more can be added
             name: 'OpenStreetMap',
             url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             type: 'xyz'
         }
       },
-      overlays: {}
+      overlays: {} // Layers containing the station icons on map
     },
-    toggleLayer: function(type){
+    toggleLayer: function(type){ // Allows checkboxes to turn off layers
       $scope.layers.overlays[type].visible = !$scope.layers.overlays[type].visible;
     },
-    layerVisibility: function(type, count){
+    layerVisibility: function(type, count){ // Determines if checkbox should be checked
       return $scope.layers.overlays[type].visible && count > 0;
     },
-    allLayersVisible: true,
-    toggleAllLayers:function(){
-      console.log("toggle")
+    allLayersVisible: true, // Keeps track of layer visibility state
+    toggleAllLayers:function(){ // Shows/hides all of the layers on the map
       angular.forEach($scope.layers.overlays, function(overlay){
         overlay.visible = !$scope.allLayersVisible;
       });
@@ -399,50 +427,64 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     }
   });
   
+  // Handles error output from http
   var errorHandler = function(response) {
     $scope.status.message = response.message;
     $scope.status.inProgress = response.inProgress;
   }
   
+  // Gets station metrics from MUSTANG
   DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&output=jsonp&callback=JSON_CALLBACK")
+    // If ir successfully gets the data
     .then(function(metricData){
+      
       $scope.status.message = metricData.message;
       $scope.status.inProgress = metricData.inProgress ? metricData.inProgress : $scope.status.inProgress;    
       
+      // Gets the information about the metric from MUSTANG
       DataFinder.getMetricInfo("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=JSON_CALLBACK&metric=").then(function(metricInfo){
         $scope.metricInfo = metricInfo;
-        //console.log($scope.metricInfo)
       });
     
+      // Gets the coordinates of the stations from IRIS FDSNWS
       DataFinder.getStationData("http://service.iris.edu/fdsnws/station/1/query"+params+"&format=text")
+        //If it successfully gets the data
         .then(function(stationData){
           $scope.status.hasData = stationData.hasData;
+          
+          // Merge the station metrics and the station coordinates into one
+          // Includes calculation of median for each station
           var stations = DataProcessor.getStations(stationData.data, metricData.data);
           $scope.data = DataProcessor.getData();
           
+          // Send the data, stations, and bins to the service that makes the map markers
           MarkerMaker.setData($scope.data);
           MarkerMaker.setStations(stations);
           MarkerMaker.setBinning($scope.binning)
           
+          // Store the bins, add the new overlays and markers to map
           $scope.binning = MarkerMaker.getBinning();
           $scope.layers.overlays = MarkerMaker.getOverlays();
           $scope.markers = MarkerMaker.getMarkers();
 
+          // Let user know if it is done processing
           $scope.status.inProgress = false;
 
+          // Fit the map to the stations
           var bounds = L.latLngBounds(DataProcessor.getLatLngs());
-          
-           leafletData.getMap().then(function(map) {
+          leafletData.getMap().then(function(map) {
             map.fitBounds(bounds, {padding: [1,1]});
             $timeout(function(){
-              map.invalidateSize(); //Leaflet rechecks map size after load for proper centering
+              map.invalidateSize();
             }, 20)
           });
           
+        //If there is no data or any other error
         }, errorHandler);
+    //If there is no data or any other error
     }, errorHandler);
-  
 
+  // Set up for the information modal
   $scope.showAlert = function(e){
     $mdDialog.show({
       controller: DialogController,
@@ -453,6 +495,7 @@ mapApp.controller("MainCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "
     });
   }
   
+  // On change of bin max, min, or count, update the bins, markers, and layers
   $scope.updateBinningValues = function(){
     MarkerMaker.setBinning($scope.binning);
     $scope.binning = MarkerMaker.getBinning();
