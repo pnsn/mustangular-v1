@@ -101,7 +101,7 @@
          <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}">
             <td>
                <div class="icon-key"  style='background-color:#{{bin.color}}'>
-                  <md-checkbox ng-show="{{bin.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(bin.class, bin.count)" ng-click="toggleLayer(bin.class)"></md-checkbox>
+                  <md-checkbox ng-show="{{bin.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(bin.name, bin.count)" ng-click="toggleLayer(bin.name)"></md-checkbox>
                   <md-tooltip md-direction="right" ng-if="bin.count == 0">
                     There are no stations in this range.
                   </md-tooltip>

@@ -36,8 +36,8 @@ formApp.provider('metricsProvider', function(){
         findMetrics($http);
         return _metrics;
       }
-    }
-  }
+    };
+  };
 });
 
 //Updates form with existing URL Parameters
@@ -51,8 +51,8 @@ formApp.service('UpdateParams', ['$location', function($location){
     
     var time = {
       start: params.timewindow? new Date(params.timewindow.split(",")[0]) : null,
-      stop: params.timewindow? new Date(params.timewindow.split(",")[1]) : null,
-    }
+      stop: params.timewindow? new Date(params.timewindow.split(",")[1]) : null
+    };
     
     _snclq = {
       net: params.net,
@@ -65,18 +65,18 @@ formApp.service('UpdateParams', ['$location', function($location){
         stop: time.stop ?  addMinutes(time.stop, time.stop.getTimezoneOffset()) : null
       },
       metric: params.metric
-    }
+    };
 
   }
   
   //Spoof UTC in datetime input because js converts from UTC to local automatically
   function addMinutes(date, minutes) {
     return new Date(date.getTime() + minutes*60000);
-  }
+  };
   
   this.getParams = function(){
     return _snclq;
-  }
+  };
   
 }]);
 
@@ -89,7 +89,7 @@ formApp.service('FinalizeParams', ['$httpParamSerializer', '$filter', '$window',
       timeStop = new Date(timeStop.setHours(23,59,59));
     }
     return timeStop;
-  }
+  };
   
   //On submit, redirect to map with parameters in URL
   this.submit = function(params) {
@@ -101,7 +101,7 @@ formApp.service('FinalizeParams', ['$httpParamSerializer', '$filter', '$window',
     
     //Redirect
     $window.location.href = "mustangular_map.html?" + $httpParamSerializer(master);
-  } 
+  }; 
   
 }]);
 

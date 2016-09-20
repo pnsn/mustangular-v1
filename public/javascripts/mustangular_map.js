@@ -71,7 +71,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
       });
     });
     return deferred.promise;
-  }
+  };
   
 }]);
 
@@ -98,7 +98,7 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
   // Returns the data {max, min, count, all values}
   this.getData = function( ){
     return _data;
-  }
+  };
   
   // Parses the text file and saves the station information
   var stationProcessor = function(stations){
@@ -124,7 +124,7 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
   var metricProcessor = function(data){
     for(var i = 0; i < data.length; i++){
       var key = data[i].net+"_"+data[i].sta;
-      var sta = _stationData[key]
+      var sta = _stationData[key];
       if(sta && sta.latitude && sta.longitude){ //only plot if it has a latitude and a longitude
         var metric = data[i];
         metric.lat = sta.latitude; //print out table of failed stations --> no data
@@ -144,9 +144,9 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
             lng: parseFloat(metric.lng),
             net: metric.net,
             chans:{}
-          }
+          };
           
-          _latlngs.push([parseFloat(metric.lat), parseFloat(metric.lng)])
+          _latlngs.push([parseFloat(metric.lat), parseFloat(metric.lng)]);
           _combinedData[key].chans[metric.chan] = [metric.value];
         }
       } else {
@@ -198,7 +198,7 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       max: values[values.length - 1],
       min: values[0],
       count: values.length
-    }
+    };
     return stations;
   };
     
@@ -216,17 +216,17 @@ mapApp.service('MarkerMaker', function(){
   // Saves the data object
   this.setData = function(data){
     _data = data;
-  }
+  };
   
   // Returns calculated markers array
   this.getMarkers = function(){
     return _markers;
-  }  
+  }; 
        
   // Returns calculated overlays object
   this.getOverlays = function(){
     return _overlays;
-  }
+  };
   
   // Returns stored binning values
   this.getBinning = function(){
@@ -264,7 +264,7 @@ mapApp.service('MarkerMaker', function(){
       min = _data.min;
       max = _data.max;
     }
-    return {max:max, min:min}
+    return {max:max, min:min};
   };
   
   // Creates the bins, there is always a low outlier and high outlier
@@ -277,7 +277,15 @@ mapApp.service('MarkerMaker', function(){
     // Generates the color codes for each bin
     var rainbow = new Rainbow();
     // Low outlier
-    _bins.push({max:min, min: _data.min, color:"000", count:0, position:-1, class:"icon-group-0"})
+    _bins.push({
+      max:min,
+      min: _data.min,
+      color:"000",
+      count:0,
+      position:-1,
+      name:"icon-group-0"
+    });
+    
     if(_binning.count > 1){
       rainbow.setNumberRange(0, _binning.count-1);
       // Green to yellow to red spectrum for icons
@@ -286,17 +294,45 @@ mapApp.service('MarkerMaker', function(){
       for (var i = 0; i < _binning.count; i++){
         max = min + _binning.width;
         if(i == _binning.count - 1){
-          _bins.push({max:_binning.max, min: min, color:rainbow.colorAt(i), count:0, position: 0,  class:"icon-group-" + (i + 1)});
+          _bins.push({
+            max:_binning.max,
+            min: min,
+            color:rainbow.colorAt(i),
+            count:0,
+            position: 0,
+            name:"icon-group-" + (i + 1)
+          });
         } else {
-          _bins.push({max:max, min: min, color:rainbow.colorAt(i), count:0, position: 0, class:"icon-group-" + (i + 1)});;
+          _bins.push({
+            max:max,
+            min: min,
+            color:rainbow.colorAt(i),
+            count:0,
+            position:0,
+            name:"icon-group-" + (i + 1)
+          });
         }
         min = max;
       }
     } else {
-      _bins.push({max: _binning.max, min:_binning.min, color: "1fd00a", count: 0, position:0, class:"icon-group-1"})
+      _bins.push({
+        max: _binning.max,
+        min:_binning.min,
+        color: "1fd00a",
+        count: 0,
+        position:0,
+        name:"icon-group-1"
+      });
     }
     // High outlier
-    _bins.push({max:_data.max, min: _binning.max, color:"808080", count: 0, position: 1, class:"icon-group-" + (_binning.count+1)})
+    _bins.push({
+      max:_data.max,
+      min: _binning.max,
+      color:"808080",
+      count: 0,
+      position: 1,
+      name:"icon-group-" + (_binning.count+1)
+    });
     
     // Array of all of the bins used.
     _binning.bins = _bins;
@@ -305,11 +341,11 @@ mapApp.service('MarkerMaker', function(){
   // Creates an overlay for each bin
   var makeOverlays = function(){
     for(var i = 0; i < _binning.bins.length; i++){
-      _overlays[_binning.bins[i].class] = {
+      _overlays[_binning.bins[i].name] = {
         type: 'group',
-        name: _binning.bins[i].class,
+        name: _binning.bins[i].name,
         visible: true
-      }
+      };
     }
   };
   
@@ -330,24 +366,26 @@ mapApp.service('MarkerMaker', function(){
           iconAnchor: [5, 5], // Make sure icon is centered over coordinates
           popupAnchor:  [-1, -5] 
         }
-       } 
+       };
     });
-  } 
+  };
       
   // Sorts the station into a bin and outputs the corresponding icon and layer    
   var makeIcon = function(value){
-      for (var i = 0; i < _binning.bins.length; i++){
-        if(value >= _binning.bins[i].min && value < _binning.bins[i].max || ((i == _binning.bins.length - 1 || i == _binning.bins.length - 2) && value == _binning.bins[i].max)){
-          _binning.bins[i].count++;
-          return {icon:"<div class='icon' style='background-color:#" + _binning.bins[i].color + "'></div>", layer:_binning.bins[i].class};
-        }
+    for (var i = 0; i < _binning.bins.length; i++){
+      if(value >= _binning.bins[i].min && value < _binning.bins[i].max || ((i == _binning.bins.length - 1 || i == _binning.bins.length - 2) && value == _binning.bins[i].max)){
+        _binning.bins[i].count++;
+        return {
+          icon:"<div class='icon' style='background-color:#" + _binning.bins[i].color + "'></div>",
+          layer:_binning.bins[i].name
+        };
       }
-
-  }
+    }
+  };
     
   // Makes the text inside the popup for each station
   var makeMessage = function(station){
-    var string = "<ul>"
+    var string = "<ul>";
     string += "<li> Station: " + station.sta + "</li>" 
     + "<li> Displayed value: " + station.maxValue 
     + "</li>" + "<li> Network: " + station.net + "</li>"
@@ -358,17 +396,17 @@ mapApp.service('MarkerMaker', function(){
         var first = key.charAt(0);
         string += "<li";
         if(first == "B" || first == "E" || first == "H"){ //TODO: figure out why REGEX not working
-          string += " class='included' >"
+          string += " class='included' >";
         } else {
           string += ">";
         }
-        string += key+": "+ channel.median+ "</li>"
+        string += key+": "+ channel.median+ "</li>";
       } 
     });
 
-    string += "</ul></li>"  
-    return string+"</ul>"   
-  }
+    string += "</ul></li>"; 
+    return string+"</ul>";  
+  };
   
 });
 
@@ -431,7 +469,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
   var errorHandler = function(response) {
     $scope.status.message = response.message;
     $scope.status.inProgress = response.inProgress;
-  }
+  };
   
   // Gets station metrics from MUSTANG
   DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&output=jsonp&callback=JSON_CALLBACK")
@@ -459,7 +497,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
           // Send the data, stations, and bins to the service that makes the map markers
           MarkerMaker.setData($scope.data);
           MarkerMaker.setStations(stations);
-          MarkerMaker.setBinning($scope.binning)
+          MarkerMaker.setBinning($scope.binning);
           
           // Store the bins, add the new overlays and markers to map
           $scope.binning = MarkerMaker.getBinning();
@@ -475,7 +513,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
             map.fitBounds(bounds, {padding: [1,1]});
             $timeout(function(){
               map.invalidateSize();
-            }, 20)
+            }, 20);
           });
           
         //If there is no data or any other error
@@ -492,7 +530,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
       targetEvent: e, 
       clickOutsideToClose: true
     });
-  }
+  };
   
   // On change of bin max, min, or count, update the bins, markers, and layers
   $scope.updateBinningValues = function(){
@@ -500,7 +538,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
     $scope.markers = MarkerMaker.getMarkers();
-  }
+  };
 
 }]);
 
