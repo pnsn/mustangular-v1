@@ -45,7 +45,7 @@ h1.md-display-2{
 }
 
 li.included{
-  background-color: rgba(140, 217, 63, 0.85);
+  background-color: rgba(0, 204, 0, 0.2);
 }
 
 h1 md-icon{
@@ -86,7 +86,7 @@ md-checkbox.md-checked.layer-toggle .md-icon {
 }
 
 .toggle-all {
-  opacity: 0.8;
+  opacity: 0.75;
   border-bottom: 1px solid black;
 }
 
