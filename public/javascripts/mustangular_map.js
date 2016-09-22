@@ -261,7 +261,7 @@ mapApp.service('MarkerMaker', function(){
       _binning.count = binning.count;
     } else if (!binning.count && _binning.max - _binning.min <= 3){
       _binning.count = 1;
-    } else if (binning.count && _data.count <= binning.count){
+    } else if (!binning.count && _data.count <= binning.count){
       _binning.count = _data.count;
     } else {
       _binning.count = 3;
