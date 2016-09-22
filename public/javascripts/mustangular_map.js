@@ -1,11 +1,11 @@
 // Mustangular map
 var mapApp = angular.module('mapApp', ['leaflet-directive', 'ngSanitize', 'ngMessages', 'ngMaterial']);
 
-//Gets the list of metrics from mustang/metrics for metric dropdown
+// Gets the list of metrics from mustang/metrics for metric dropdown
 mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   var _metricName = "";
   
-  //Returns promise with MUSTANG data or error information
+  // Returns promise with MUSTANG data or error information
   this.getMetricData = function(query){
     var deferred = $q.defer();
     $http.jsonp(query).success(function(response){
@@ -44,7 +44,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
     return deferred.promise;
   };  
   
-  //Returns info about metric from MUSTANG
+  // Returns info about metric from MUSTANG
   this.getMetricInfo = function(query){
     return $http.jsonp(query + _metricName)
       .then(function(response){
@@ -108,7 +108,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   
 }]);
 
-//Parses the text files for station coordinates, combines data into a single object,
+// Parses the text files for station coordinates, combines data into a single object,
 // calculates the medians for each station
 mapApp.service('DataProcessor', ["$filter", function($filter){
   var _stationData = [];
@@ -491,10 +491,10 @@ mapApp.service('MarkerMaker', function(){
   
 });
 
-// One Controller to rule them all. One Controller to find them, One Controller to bring them all and in the darkness bind them.
+// One Controller to rule them all, one controller to find them, one controller to bring them all and in the darkness bind them.
 mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout) {
   
-  //Strip out empty params
+  // Strip out empty params
   var params = $window.location.search
     .replace(/&\w*=&/g, '&')
     .replace(/&\w*=$/gm, "")
@@ -516,7 +516,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
       inProgress: true,
       message:"Waiting for data."
     },
-    defaults: {// Map stuff
+    defaults: {// Map config stuff
       scrollWheelZoom: false
     },
     markers: {}, // Markers for map, to be created
@@ -624,7 +624,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
 
 }]);
 
-//Required for angular material dialog 
+// Required for angular material dialog 
 function DialogController($scope, $mdDialog) {
   $scope.hide = function() {
     $mdDialog.hide();
@@ -637,7 +637,7 @@ function DialogController($scope, $mdDialog) {
   };
 }
 
-//Disables default debugging output on angular leaflet
+// Disables default debugging output on angular leaflet
 mapApp.config(['$logProvider', '$locationProvider',function($logProvider, $locationProvider){
   $logProvider.debugEnabled(false);
   
