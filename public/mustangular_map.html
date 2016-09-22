@@ -108,8 +108,8 @@
                   </md-tooltip>
                </div>
             </td>
-            <td ng-if="bin.position < 0">< {{bin.max-0.01| number:2}}</td>
-            <td ng-if="bin.position == 0">{{bin.min | number:2}} - {{bin.max - 0.01 | number:2}}</td>
+            <td ng-if="bin.position < 0">< {{bin.max - 0.01| number:2}}</td>
+            <td ng-if="bin.position == 0">{{bin.min | number:2}} - {{bin.max - ( bin.min == bin.max && bin.min == 0 ? 0 : 0.01 ) | number:2}}</td>
             <td ng-if="bin.position > 0">> {{bin.min | number:2}}</td>
             <td>{{bin.count}}</td>
             <td><div ng-if="bin.count > 0" class="histogram" style='width:{{100*bin.count/data.count}}px; background-color:#{{bin.color}}'></div></td>

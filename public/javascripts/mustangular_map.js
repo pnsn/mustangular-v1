@@ -9,6 +9,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   this.getMetricData = function(query){
     var deferred = $q.defer();
     $http.jsonp(query).success(function(response){
+      console.log(response);
       var responseText = Object.keys(response.measurements)[0];
       var responseData = response.measurements[responseText];
       if(responseText == "error"){
@@ -22,6 +23,17 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
           data:responseData,
           message:"Processing Data."
         });
+      } else if(responseData.length == 0){
+        deferred.reject({
+          message:"Error: No data returned.",
+          inProgress:false
+        });
+      } else {        
+        deferred.reject({
+          message:"Unknown error, please check query parameters.",
+          inProgress:false
+        });
+        
       }
     }).error(function(response){
       deferred.reject({
@@ -244,7 +256,17 @@ mapApp.service('MarkerMaker', function(){
     var newBinning = findBinning();
     _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
     _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
-    _binning.count =binning.count &&  _data.count > binning.count ? binning.count : _data.count;
+    
+    if(binning.count && _data.count > binning.count){
+      _binning.count = binning.count;
+    } else if (!binning.count && _binning.max - _binning.min <= 3){
+      _binning.count = 1;
+    } else if (binning.count && _data.count <= binning.count){
+      _binning.count = _data.count;
+    } else {
+      _binning.count = 3;
+    }
+
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     
     makeBins();
@@ -423,11 +445,10 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
   $scope.goBack = function(){
     $window.location.href="index.html" + params;
   };
-  
+
   // Initializes variables and sets up map
   angular.extend($scope, {
-    binning: { // {max, min, count, array of bins}
-      count: 3, // Arbitrary number of bins to start with
+    binning: { // {max, min, count, array of bins} // Arbitrary number of bins to start with
       bins: {}
     },
     data: {}, // {max, min, count, array of values}
