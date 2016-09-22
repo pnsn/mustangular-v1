@@ -65,17 +65,17 @@
          
          <md-input-container class="md-block controls">
             <label> Min binning value:</label>
-            <input type="number" ng-model="binning.min" ng-change="updateBinningValues()" max="{{binning.max - 1}}" min="{{data.min}}" flex="50">
+            <input type="number" ng-model="binning.min" ng-change="updateBinningValues(binning.min)" max="{{binning.max - 1}}" flex="50">
          </md-input-container >
          
          <md-input-container class="md-block controls">
             <label> Max binning value:</label>
-            <input type="number" ng-model="binning.max" ng-change="updateBinningValues()" min="{{binning.min + 1}}" max="{{data.max}}" flex="50">
+            <input type="number" ng-model="binning.max" ng-change="updateBinningValues(binning.max)" min="{{binning.min + 1}}" flex="50">
          </md-input-container >
          
          <md-input-container class="md-block controls">
             <label>Number of bins: </label>
-            <input type="number" ng-model="binning.count" ng-change="updateBinningValues()" min="1" max="25"  flex="50">
+            <input type="number" ng-model="binning.count" ng-change="updateBinningValues(binning.count)" min="1" max="25"  flex="50">
          </md-input-container >
       </div>
       
@@ -108,9 +108,10 @@
                   </md-tooltip>
                </div>
             </td>
-            <td ng-if="bin.position < 0">< {{bin.max - 0.01| number:2}}</td>
+            <td ng-if="bin.position == -1">< {{bin.max - 0.01| number:2}}</td>
             <td ng-if="bin.position == 0">{{bin.min | number:2}} - {{bin.max - ( bin.min == bin.max && bin.min == 0 ? 0 : 0.01 ) | number:2}}</td>
-            <td ng-if="bin.position > 0">> {{bin.min | number:2}}</td>
+            <td ng-if="bin.position == 1">> {{bin.min | number:2}}</td>
+            <td ng-if="bin.position == 2">No data.</td>
             <td>{{bin.count}}</td>
             <td><div ng-if="bin.count > 0" class="histogram" style='width:{{100*bin.count/data.count}}px; background-color:#{{bin.color}}'></div></td>
          </tr>
@@ -132,3 +133,20 @@
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
