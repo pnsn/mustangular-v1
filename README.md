@@ -10,11 +10,11 @@ The form capitalizes input to the text entry boxes. The metric select is populat
 
 ###Parameters:
 Accepted URL parameters for changing the map view are:
-   - binmax = # (float) : sets maximum binning value
-   - binmin = # (float) : sets minimum binning value
-   - bincount = # (int) : sets number of bins
-   - coloring = ascending or descending : sets the coloring of the icons from red to green or green to red
-   - view = max or min or extreme : sets the value for the station
+   - binmax    = # (float)                : sets maximum binning value,       defaults to 95th percentile
+   - binmin    = # (float)                : sets minimum binning value,       defaults to 5th percentile
+   - bincount  = # (int)                  : sets number of bins,              defaults to 3
+   - view      = max or min or extreme    : sets the value for the station,   defaults to max
+   - coloring  = ascending or descending  : sets the coloring of the icons,   defaults to 'green to red'
 
 ###Metric Information:
 The metric information is from the IRIS MUSTANG metric service.

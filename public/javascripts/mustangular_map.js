@@ -9,7 +9,6 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   this.getMetricData = function(query){
     var deferred = $q.defer();
     $http.jsonp(query).success(function(response){
-      //console.log(response);
       var responseText = Object.keys(response.measurements)[0];
       var responseData = response.measurements[responseText];
       if(responseText == "error"){
@@ -226,10 +225,10 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
         channel.median = median;
       });
       
-      // Set the displayed value for the station'
+      // Set the possible display values for the station
       station.maxValue = maxValue == Number.MIN_SAFE_INTEGER ? null : maxValue;
       station.minValue = minValue == Number.MAX_SAFE_INTEGER ? null : minValue;
-      station.extremeValue = extremeValue == 0 ? null : extremeValue; //TODO: this will override values that actually should be 0;
+      station.extremeValue = extremeValue == 0 ? 0 : extremeValue; //TODO: this will override values that actually should be 0;
       
       maxValues.push(station.maxValue);
       minValues.push(station.minValue);
@@ -237,6 +236,8 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       
     });
     
+    
+    // order the values
     maxValues = $filter('orderBy')(maxValues);
     minValues = $filter('orderBy')(minValues);
     extremeValues = $filter('orderBy')(extremeValues);
@@ -273,9 +274,9 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       count: extremeValues.length,
       safeCount: safeCount
     };
-    
 
     _data = {
+      count: values.length,
       maxData: maxData,
       minData: minData,
       extremeData : extremeData
@@ -350,16 +351,19 @@ mapApp.service('MarkerMaker', function(){
     var max, min;
     if(_data.count > 1){
 
-      var val = Math.round(.95 * _data.safeCount);
-      
-      min = _data.min > 0 ? _data.min : 0;
-      max = val > 1 ? _data.values[val - 1] : _data.values[val];
+      var maxVal = Math.round(.95 * _data.safeCount);
+      var minVal = Math.round(.05 * _data.safeCount);
+
+      min = minVal > 1 ? _data.values[minVal - 1] : _data.values[minVal];
+      max = maxVal > 1 ? _data.values[maxVal - 1] : _data.values[maxVal];
       
     } else {
       min = _data.min;
       max = _data.max;
     }
+
     return {max:max, min:min};
+    
   };
   
   // Creates the bins, there is always a low outlier and high outlier
@@ -380,7 +384,7 @@ mapApp.service('MarkerMaker', function(){
       position:-1,
       name:"icon-group-0"
     });
-    //console.log(_binning);
+    
     if(_binning.count > 1){
       rainbow.setNumberRange(0, _binning.count-1);
       
@@ -538,30 +542,20 @@ mapApp.service('MarkerMaker', function(){
 
 // One Controller to rule them all, one controller to find them, one controller to bring them all and in the darkness bind them.
 mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", "$location", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout, $location) {
-  
+
   // Strip out empty params
   var params = $window.location.search
+    .replace(/(view|binmin|binmax|bincount|coloring)=[^&]*&?/gm, "")
     .replace(/&\w*=&/g, '&')
-    .replace(/&\w*=$/gm, "")
-    .replace(/\?\w*=&/gm, "?")
-    .replace(/(view|binmin|binmax|bincount|coloring)=[^&]*&?/gm, "");
-  
-  // Return to form
-  $scope.goBack = function(){
-    $window.location.href="index.html" + params;
-  };
+    .replace(/&(\w*=)?$/gm, "")
+    .replace(/\?\w*=&/gm, "?");
 
   // Initializes variables and sets up map
   angular.extend($scope, {
     binning: { // {max, min, count, array of bins} // Arbitrary number of bins to start with
-      bins: {
-
-      },
-      max: parseFloat($location.search().binmax),
-      min: parseFloat($location.search().binmin),
-      count: parseInt($location.search().bincount, 10)
+      bins: {}
     },
-    dataView: $location.search().view ? $location.search().view : "min",
+    dataView: $location.search().view ? $location.search().view : "max",
     coloring: $location.search().coloring ? $location.search().coloring : "warming",
     data: {}, // {max, min, count, array of values}
     status: { // Used to inform use of the state of processing
@@ -598,6 +592,15 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     }
   });
   
+      // $scope.binning.max = $location.search().binmax ? parseFloat($location.search().binmax) : null,
+      // $scope.binning.min =  $location.search().binmin ? parseFloat($location.search().binmin) : null,
+      // count: parseInt($location.search().bincount, 10)
+  
+  // Return to form
+  $scope.goBack = function(){
+    $window.location.href="index.html" + params + $scope.extraParams;
+  };
+  
   // Handles error output from http
   var errorHandler = function(response) {
     $scope.status.message = response.message;
@@ -626,7 +629,6 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
           // Includes calculation of median for each station
           var stations = DataProcessor.getStations(stationData.data, metricData.data);
           $scope.data = DataProcessor.getData();
-
           // Send the data, stations, and bins to the service that makes the map markers
           MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
           MarkerMaker.setStations(stations);
@@ -667,16 +669,24 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     });
   };
   
+  
+  var updateParams = function(){
+    $scope.extraParams =
+    "&view=" + $scope.dataView + 
+    "&binmin=" + $scope.binning.min + 
+    "&binmax=" + $scope.binning.max +
+    "&bincount=" + $scope.binning.count + 
+    "&coloring=" + $scope.coloring; 
+  };
+  
   // On change of bin max, min, or count, update the bins, markers, and layers
   $scope.updateBinningValues = function(value){
     if(value){
-      MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
-      MarkerMaker.setBinning($scope.binning, $scope.dataView);
-      $scope.binning = MarkerMaker.getBinning();
-      $scope.layers.overlays = MarkerMaker.getOverlays();
-      $scope.markers = MarkerMaker.getMarkers();
+      $scope.updateDataView();
     }
   };
+  
+
   
   // On change of view type, update everything
   $scope.updateDataView = function(){
@@ -685,8 +695,22 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
     $scope.markers = MarkerMaker.getMarkers();
+    updateParams();
   };
   
+
+  
+
+  $scope.shareLink = function(e){
+    $scope.link = $window.location.origin + $window.location.pathname + params + $scope.extraParams;
+    $mdDialog.show({
+      controller: DialogController,
+      contentElement: '#shareLink',
+      parent: "body",
+      targetEvent: e, 
+      clickOutsideToClose: true
+    });
+  }
 
 }]);
 

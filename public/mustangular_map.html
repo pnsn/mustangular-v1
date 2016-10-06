@@ -32,6 +32,7 @@
    </div>
    <md-content id="controls" layout-padding flex-gt-sm="30" flex-sm="100">
       <md-button class="md-raised md-primary" ng-click="goBack()"> Return to form</md-button>
+      <md-button class="md-raised" ng-click="shareLink(e)" ng-show="status.hasData && !status.inProgress">Share Link</md-button>
       <p class="error" ng-show="!status.hasData || status.inProgress">{{status.message}}</p>
       
       <md-progress-circular ng-show="status.inProgress" md-mode="indeterminate"></md-progress-circular>
@@ -140,6 +141,14 @@
           <md-dialog-content>
              <h2 class="md-title">{{metricInfo.title}}</h2>
              <ng-bind-html ng-bind-html="metricInfo.description"> </ng-bind-html>
+          </md-dialog-content>
+       </md-dialog>
+     </div>
+     <div class="md-dialog-container" id="shareLink">
+       <md-dialog layout-padding aria-label="Dialog">
+          <md-dialog-content>
+             <h2 class="md-title">Share the link</h2>
+             <a href="{{link}}">{{link}}</a>
           </md-dialog-content>
        </md-dialog>
      </div>
