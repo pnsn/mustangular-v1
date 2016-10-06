@@ -85,6 +85,12 @@
            <md-radio-button value="extreme" class="md-primary">Most Extreme</md-radio-button>
          </md-radio-group>
          
+         
+         <label>Icon coloring:</label>
+         <md-radio-group ng-model="coloring" ng-change="updateDataView()">
+           <md-radio-button value="warming" class="md-primary" >Green to Red (warming)</md-radio-button>
+           <md-radio-button value="cooling" class="md-primary" >Red to green (cooling)</md-radio-button>
+         </md-radio-group>
       </div>
       
    <div id="key" ng-show="status.hasData">
@@ -141,12 +147,6 @@
 </body>
 
 </html>
-
-<!--TODO:
-*add URL parameters for binning
-*add option to change view of map
-*add option to reverse colors
- -->
 
 
 

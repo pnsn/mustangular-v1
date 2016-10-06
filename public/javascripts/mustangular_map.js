@@ -322,7 +322,7 @@ mapApp.service('MarkerMaker', function(){
   
   // Sets the binning values from user or calculates new ones 
   // Calls functions to make bins, overlays, and markers
-  this.setBinning = function(binning, view){
+  this.setBinning = function(binning, view, coloring){
     var newBinning = findBinning();
     _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
     _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
@@ -340,7 +340,7 @@ mapApp.service('MarkerMaker', function(){
 
     _binning.width = (_binning.max - _binning.min) / _binning.count;
     
-    makeBins();
+    makeBins(coloring);
     makeOverlays();
     makeMarkers(view);
   };    
@@ -365,7 +365,7 @@ mapApp.service('MarkerMaker', function(){
   // Creates the bins, there is always a low outlier and high outlier
   // Number of inner bins determined by user
   // The specific colors used for the icons can be changed here
-  var makeBins = function(){ 
+  var makeBins = function(coloring){ 
     var bins = []; 
     var min =  _binning.min;
     
@@ -383,8 +383,14 @@ mapApp.service('MarkerMaker', function(){
     //console.log(_binning);
     if(_binning.count > 1){
       rainbow.setNumberRange(0, _binning.count-1);
+      
       // Green to yellow to red spectrum for icons
-      rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
+      if(coloring==="cooling") {
+        rainbow.setSpectrum("DD0000","E3EA00", "1fd00a");
+      } else {
+        rainbow.setSpectrum("1fd00a","E3EA00", "DD0000");
+      }
+      
       var max;
       for (var i = 0; i < _binning.count; i++){
         max = min + _binning.width;
@@ -538,7 +544,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     .replace(/&\w*=&/g, '&')
     .replace(/&\w*=$/gm, "")
     .replace(/\?\w*=&/gm, "?")
-    .replace(/(view|binmin|binmax|bincount)=[^&]*&?/gm, "");
+    .replace(/(view|binmin|binmax|bincount|coloring)=[^&]*&?/gm, "");
   
   // Return to form
   $scope.goBack = function(){
@@ -556,6 +562,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
       count: parseInt($location.search().bincount, 10)
     },
     dataView: $location.search().view ? $location.search().view : "min",
+    coloring: $location.search().coloring ? $location.search().coloring : "warming",
     data: {}, // {max, min, count, array of values}
     status: { // Used to inform use of the state of processing
       hasData: false,
@@ -623,7 +630,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
           // Send the data, stations, and bins to the service that makes the map markers
           MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
           MarkerMaker.setStations(stations);
-          MarkerMaker.setBinning($scope.binning, $scope.dataView);
+          MarkerMaker.setBinning($scope.binning, $scope.dataView, $scope.coloring);
           
           
           
@@ -674,7 +681,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
   // On change of view type, update everything
   $scope.updateDataView = function(){
     MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
-    MarkerMaker.setBinning($scope.binning, $scope.dataView);
+    MarkerMaker.setBinning($scope.binning, $scope.dataView, $scope.coloring);
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
     $scope.markers = MarkerMaker.getMarkers();
