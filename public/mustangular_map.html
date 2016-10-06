@@ -77,6 +77,14 @@
             <label>Number of bins: </label>
             <input type="number" ng-model="binning.count" ng-change="updateBinningValues(binning.count)" min="1" max="25"  flex="50">
          </md-input-container >
+         
+         <label>Displayed value:</label>
+         <md-radio-group ng-model="dataView" ng-change="updateDataView()">
+           <md-radio-button value="max" class="md-primary" >Maximum</md-radio-button>
+           <md-radio-button value="min" class="md-primary" >Minimum</md-radio-button>
+           <md-radio-button value="extreme" class="md-primary">Most Extreme</md-radio-button>
+         </md-radio-group>
+         
       </div>
       
    <div id="key" ng-show="status.hasData">
@@ -134,7 +142,11 @@
 
 </html>
 
-
+<!--TODO:
+*add URL parameters for binning
+*add option to change view of map
+*add option to reverse colors
+ -->
 
 
 

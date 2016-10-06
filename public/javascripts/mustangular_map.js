@@ -192,9 +192,13 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
   // Calculates the median value for each channel of each station
   // Calculates the maximum value (of the chosen channels) for each station
   var medianFinder = function(stations){
-    var values = [];
+    var maxValues = [];
+    var minValues = [];
+    var extremeValues = [];
     angular.forEach(stations, function(station, key){
       var maxValue = Number.MIN_SAFE_INTEGER;
+      var minValue = Number.MAX_SAFE_INTEGER;
+      var extremeValue = 0;
       angular.forEach(station.chans, function(channel, key){
         var orderedChans = $filter('orderBy')(channel); 
         
@@ -215,6 +219,8 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
         var first = key.charAt(0);
         if(first == "B" || first == "E" || first == "H"){
           maxValue = Math.max(maxValue, median);
+          minValue = Math.min(minValue, median);
+          extremeValue = Math.abs(extremeValue) > Math.abs(median) ? extremeValue : median;
         }
 
         channel.median = median;
@@ -222,12 +228,20 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       
       // Set the displayed value for the station'
       station.maxValue = maxValue == Number.MIN_SAFE_INTEGER ? null : maxValue;
-      values.push(station.maxValue);
+      station.minValue = minValue == Number.MAX_SAFE_INTEGER ? null : minValue;
+      station.extremeValue = extremeValue == 0 ? null : extremeValue; //TODO: this will override values that actually should be 0;
+      
+      maxValues.push(station.maxValue);
+      minValues.push(station.minValue);
+      extremeValues.push(station.extremeValue);
       
     });
     
-    values = $filter('orderBy')(values);
+    maxValues = $filter('orderBy')(maxValues);
+    minValues = $filter('orderBy')(minValues);
+    extremeValues = $filter('orderBy')(extremeValues);
     
+    var values = maxValues;
     //Get the index of the last not null value
     safeCount = values.length;
     value = null;
@@ -235,13 +249,36 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       safeCount = i;
       value = values[i];
     }
+    
+    maxData = {
+      values: maxValues,
+      max: maxValues[safeCount],
+      min: maxValues[0],
+      count: maxValues.length,
+      safeCount: safeCount
+    };
+    
+    minData = {
+      values: minValues,
+      max: minValues[safeCount],
+      min: minValues[0],
+      count: minValues.length,
+      safeCount: safeCount
+    };
+    
+    extremeData = {
+      values: extremeValues,
+      max: extremeValues[safeCount],
+      min: extremeValues[0],
+      count: extremeValues.length,
+      safeCount: safeCount
+    };
+    
 
     _data = {
-      values: values,
-      max: values[safeCount],
-      min: values[0],
-      count: values.length,
-      safeCount: safeCount
+      maxData: maxData,
+      minData: minData,
+      extremeData : extremeData
     };
     
     return stations;
@@ -285,15 +322,16 @@ mapApp.service('MarkerMaker', function(){
   
   // Sets the binning values from user or calculates new ones 
   // Calls functions to make bins, overlays, and markers
-  this.setBinning = function(binning){
+  this.setBinning = function(binning, view){
     var newBinning = findBinning();
     _binning.max = binning.max || binning.max == 0 ? binning.max : newBinning.max; 
     _binning.min = binning.min || binning.min == 0 ? binning.min : newBinning.min;
-    
+
     if(binning.count && _data.count > binning.count){
       _binning.count = binning.count;
     } else if (!binning.count && _binning.max - _binning.min <= 3){
       _binning.count = 1;
+      _binning.max = _data.max + 1;
     } else if (!binning.count && _data.count <= binning.count){
       _binning.count = _data.count;
     } else {
@@ -304,7 +342,7 @@ mapApp.service('MarkerMaker', function(){
     
     makeBins();
     makeOverlays();
-    makeMarkers();
+    makeMarkers(view);
   };    
   
   // Function sets initial values       
@@ -403,6 +441,7 @@ mapApp.service('MarkerMaker', function(){
     
     // Array of all of the bins used.
     _binning.bins = bins;
+
   };
   
   // Creates an overlay for each bin
@@ -417,14 +456,14 @@ mapApp.service('MarkerMaker', function(){
   };
   
   // Makes all of the markers for the map, styling is determined by CSS
-  var makeMarkers = function(){
+  var makeMarkers = function(view){
     angular.forEach(_stations, function(station, key){
-      var symbol = makeIcon(station.maxValue);
+      var symbol = makeIcon(station[view + "Value"]);
     _markers[key]={
         layer: symbol.layer,
         lat: station.lat,
         lng: station.lng,
-        message: makeMessage(station),
+        message: makeMessage(station, view),
         icon: {
           type:'div', // Icon is styled by CSS
           className: 'icon-plain',
@@ -464,9 +503,9 @@ mapApp.service('MarkerMaker', function(){
   };
     
   // Makes the text inside the popup for each station
-  var makeMessage = function(station){
+  var makeMessage = function(station, view){
     var string = "<ul>";
-    var value = station.maxValue == null ? "No Data." : station.maxValue;
+    var value = station[view + "Value"] == null ? "No Data." : station[view+"Value"];
     string += "<li> Station: " + station.sta + "</li>" 
     + "<li> Displayed value: " + value 
     + "</li>" + "<li> Network: " + station.net + "</li>"
@@ -493,18 +532,22 @@ mapApp.service('MarkerMaker', function(){
 
 // One Controller to rule them all, one controller to find them, one controller to bring them all and in the darkness bind them.
 mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout) {
-  
+  console.log();
   // Strip out empty params
   var params = $window.location.search
     .replace(/&\w*=&/g, '&')
     .replace(/&\w*=$/gm, "")
     .replace(/\?\w*=&/gm, "?");
   
+  //strip out view && binning
+  
   // Return to form
   $scope.goBack = function(){
     $window.location.href="index.html" + params;
   };
-
+  
+  $scope.dataView = "max";
+  
   // Initializes variables and sets up map
   angular.extend($scope, {
     binning: { // {max, min, count, array of bins} // Arbitrary number of bins to start with
@@ -573,11 +616,13 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
           // Includes calculation of median for each station
           var stations = DataProcessor.getStations(stationData.data, metricData.data);
           $scope.data = DataProcessor.getData();
-          
+
           // Send the data, stations, and bins to the service that makes the map markers
-          MarkerMaker.setData($scope.data);
+          MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
           MarkerMaker.setStations(stations);
-          MarkerMaker.setBinning($scope.binning);
+          MarkerMaker.setBinning($scope.binning, $scope.dataView);
+          
+          
           
           // Store the bins, add the new overlays and markers to map
           $scope.binning = MarkerMaker.getBinning();
@@ -615,12 +660,23 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
   // On change of bin max, min, or count, update the bins, markers, and layers
   $scope.updateBinningValues = function(value){
     if(value){
-      MarkerMaker.setBinning($scope.binning);
+      MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
+      MarkerMaker.setBinning($scope.binning, $scope.dataView);
       $scope.binning = MarkerMaker.getBinning();
       $scope.layers.overlays = MarkerMaker.getOverlays();
       $scope.markers = MarkerMaker.getMarkers();
     }
   };
+  
+  $scope.updateDataView = function(){
+    MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
+    MarkerMaker.setBinning($scope.binning, $scope.dataView);
+    $scope.binning = MarkerMaker.getBinning();
+    $scope.layers.overlays = MarkerMaker.getOverlays();
+    $scope.markers = MarkerMaker.getMarkers();
+    console.log("weeee")
+  }
+  
 
 }]);
 
