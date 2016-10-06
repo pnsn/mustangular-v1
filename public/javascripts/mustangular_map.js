@@ -531,28 +531,31 @@ mapApp.service('MarkerMaker', function(){
 });
 
 // One Controller to rule them all, one controller to find them, one controller to bring them all and in the darkness bind them.
-mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout) {
-  console.log();
+mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "DataProcessor", "MarkerMaker", "leafletData", "DataProcessor", "$timeout", "$location", function($scope, $window, $mdDialog, DataFinder, DataProcessor, MarkerMaker, leafletData, DataProcessor, $timeout, $location) {
+  
   // Strip out empty params
   var params = $window.location.search
     .replace(/&\w*=&/g, '&')
     .replace(/&\w*=$/gm, "")
-    .replace(/\?\w*=&/gm, "?");
-  
-  //strip out view && binning
+    .replace(/\?\w*=&/gm, "?")
+    .replace(/(view|binmin|binmax|bincount)=[^&]*&?/gm, "");
   
   // Return to form
   $scope.goBack = function(){
     $window.location.href="index.html" + params;
   };
-  
-  $scope.dataView = "max";
-  
+
   // Initializes variables and sets up map
   angular.extend($scope, {
     binning: { // {max, min, count, array of bins} // Arbitrary number of bins to start with
-      bins: {}
+      bins: {
+
+      },
+      max: parseFloat($location.search().binmax),
+      min: parseFloat($location.search().binmin),
+      count: parseInt($location.search().bincount, 10)
     },
+    dataView: $location.search().view ? $location.search().view : "min",
     data: {}, // {max, min, count, array of values}
     status: { // Used to inform use of the state of processing
       hasData: false,
@@ -668,14 +671,14 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     }
   };
   
+  // On change of view type, update everything
   $scope.updateDataView = function(){
     MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
     MarkerMaker.setBinning($scope.binning, $scope.dataView);
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
     $scope.markers = MarkerMaker.getMarkers();
-    console.log("weeee")
-  }
+  };
   
 
 }]);
