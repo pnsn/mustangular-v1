@@ -2,10 +2,6 @@ mustangular
 ===========
 An Angular.js application that displays station metrics from the ISIS MUSTANG service on a leaflet map. 
 
-Installation:
-------------
-
-
 
 General Information:
 -------------------
@@ -39,3 +35,7 @@ Libraries:
 - Leaflet.js
 - RainbowVis-JS
 - Angular-leaflet-directive.js
+
+Installation:
+------------
+Mustangular entirely static and can be served via any frontend web server by cloning the contents of public into the DocumentRoot of your webserver of VirtualHost.
