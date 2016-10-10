@@ -59,8 +59,8 @@
                </div>
             </h2>
         	   <div> Value range on map: 
-               <span>min: {{data.min}}, </span>
-               <span>max: {{data.max}} </span>
+               <span>min: {{data[dataView].min}}, </span>
+               <span>max: {{data[dataView].max}} </span>
             </div>
          </div>
          
@@ -79,21 +79,37 @@
             <input type="number" ng-model="binning.count" ng-change="updateBinningValues(binning.count)" min="1" max="25"  flex="50">
          </md-input-container >
          
-         <label>Displayed value:</label>
+         
+         <h3 class="md-subhead"> Displayed value: 
+            <div class="tooltip">
+               <md-icon md-svg-src="images/tooltip.svg"> 
+               <md-tooltip md-direction="right">
+                 Select the value that represents each station.
+               </md-tooltip>
+            </div>
+         </h3>
+         
          <md-radio-group ng-model="dataView" ng-change="updateDataView()">
            <md-radio-button value="max" class="md-primary" >Maximum</md-radio-button>
            <md-radio-button value="min" class="md-primary" >Minimum</md-radio-button>
            <md-radio-button value="extreme" class="md-primary">Most Extreme</md-radio-button>
          </md-radio-group>
          
+         <h2 class="md-subhead"> Icon coloring: 
+            <div class="tooltip">
+               <md-icon md-svg-src="images/tooltip.svg"> 
+               <md-tooltip md-direction="right">
+                 Inverts the color gradient of the icons.
+               </md-tooltip>
+            </div>
+         </h2>
          
-         <label>Icon coloring:</label>
          <md-radio-group ng-model="coloring" ng-change="updateDataView()">
            <md-radio-button value="warming" class="md-primary" >Green to Red (warming)</md-radio-button>
            <md-radio-button value="cooling" class="md-primary" >Red to green (cooling)</md-radio-button>
          </md-radio-group>
       </div>
-      
+   
    <div id="key" ng-show="status.hasData">
       <h2 class="md-title"> Key:
          <div class="tooltip"><md-icon md-svg-src="images/tooltip.svg">
@@ -105,16 +121,7 @@
       <table>
          
          <tr><th>On/off</th><th>Range</th><th>Count</th></tr>
-         <tr class="toggle-all">
-            <td>
-               <div class="icon-key">
-                  <md-checkbox class="layer-toggle" aria-label="toggle all layers" ng-checked="allLayersVisible" ng-click="toggleAllLayers()"></md-checkbox>
-               </div>
-            </td>
-            <td>Toggle all stations</td>
-            <td>{{data.count}}</td>
-         </tr>
-         <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}">
+         <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}" ng-if="bin.count != 0 && bin.position != 2">
             <td>
                <div class="icon-key"  style='background-color:#{{bin.color}}'>
                   <md-checkbox ng-show="{{bin.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(bin.name, bin.count)" ng-click="toggleLayer(bin.name)"></md-checkbox>

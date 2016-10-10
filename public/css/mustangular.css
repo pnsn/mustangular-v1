@@ -44,6 +44,11 @@ h1.md-display-2{
 
 }
 
+ul.settings{
+  list-style-type: none;
+  
+}
+
 li.included{
   background-color: rgba(0, 204, 0, 0.2);
 }
@@ -111,4 +116,8 @@ tr[disabled="disabled"] {
 .values p{
   margin: 0px;
   display: inline;
+}
+
+#key h2 { 
+  margin-top: 1px;
 }

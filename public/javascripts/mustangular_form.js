@@ -47,6 +47,8 @@ formApp.service('UpdateParams', ['$location', function($location){
   //Populate form if there are parameters in the URL
   var params = $location.search();
   
+  this.hasSettings = false;
+  
   if(params){
     
     var time = {
@@ -64,8 +66,18 @@ formApp.service('UpdateParams', ['$location', function($location){
         start: time.start ? addMinutes(time.start, time.start.getTimezoneOffset()) : null,
         stop: time.stop ?  addMinutes(time.stop, time.stop.getTimezoneOffset()) : null
       },
-      metric: params.metric
+      //preserve these values
+      metric: params.metric,
+      binmin: params.binmin,
+      binmax: params.binmax,
+      bincount: params.bincount,
+      view: params.view,
+      coloring: params.coloring    
     };
+    
+    if(params.bincount || params.binmin || params.binmax || params.view || params.coloring){
+      this.hasSettings = true;
+    }
 
   }
   
@@ -76,6 +88,19 @@ formApp.service('UpdateParams', ['$location', function($location){
   
   this.getParams = function(){
     return _snclq;
+  };
+  
+  this.clearParams = function(){
+    
+    angular.extend(_snclq, {
+      binmin: null,
+      binmax: null,
+      bincount: null,
+      view: null,
+      coloring: null    
+    });
+    
+    this.hasSettings = false;
   };
   
 }]);
@@ -119,7 +144,17 @@ formApp.controller('FormCtrl', ['$scope', 'metricsProvider', 'UpdateParams', 'Fi
   $scope.fixTime = FinalizeParams.fixTime;
   
   //Fills form in with URL parameters
-  $scope.snclq = UpdateParams.getParams();
+  $scope.params = UpdateParams.getParams();
+  
+  $scope.hasSettings = UpdateParams.hasSettings;
+  
+  //Remove any settings passed in when returning from map
+  $scope.clearSettings = function(){
+    UpdateParams.clearParams();
+    $scope.params = UpdateParams.getParams();
+    $scope.hasSettings = UpdateParams.hasSettings;
+    console.log($scope.hasSettings)
+  };
   
 }]);
 

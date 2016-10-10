@@ -277,9 +277,9 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
 
     _data = {
       count: values.length,
-      maxData: maxData,
-      minData: minData,
-      extremeData : extremeData
+      max: maxData,
+      min: minData,
+      extreme : extremeData
     };
     
     return stations;
@@ -557,7 +557,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     },
     dataView: $location.search().view ? $location.search().view : "max",
     coloring: $location.search().coloring ? $location.search().coloring : "warming",
-    data: {}, // {max, min, count, array of values}
+    data: {}, // {type:{min, max, count, values}, ... }}
     status: { // Used to inform use of the state of processing
       hasData: false,
       inProgress: true,
@@ -592,12 +592,9 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     }
   });
   
-      // $scope.binning.max = $location.search().binmax ? parseFloat($location.search().binmax) : null,
-      // $scope.binning.min =  $location.search().binmin ? parseFloat($location.search().binmin) : null,
-      // count: parseInt($location.search().bincount, 10)
-  
   // Return to form
   $scope.goBack = function(){
+    updateParams();
     $window.location.href="index.html" + params + $scope.extraParams;
   };
   
@@ -629,12 +626,11 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
           // Includes calculation of median for each station
           var stations = DataProcessor.getStations(stationData.data, metricData.data);
           $scope.data = DataProcessor.getData();
+          
           // Send the data, stations, and bins to the service that makes the map markers
-          MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
+          MarkerMaker.setData($scope.data[$scope.dataView]);
           MarkerMaker.setStations(stations);
           MarkerMaker.setBinning($scope.binning, $scope.dataView, $scope.coloring);
-          
-          
           
           // Store the bins, add the new overlays and markers to map
           $scope.binning = MarkerMaker.getBinning();
@@ -669,7 +665,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     });
   };
   
-  
+  // Update the url for the form/sharing
   var updateParams = function(){
     $scope.extraParams =
     "&view=" + $scope.dataView + 
@@ -686,23 +682,20 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     }
   };
   
-
-  
   // On change of view type, update everything
   $scope.updateDataView = function(){
-    MarkerMaker.setData($scope.data[$scope.dataView + "Data"]);
+    MarkerMaker.setData($scope.data[$scope.dataView]);
     MarkerMaker.setBinning($scope.binning, $scope.dataView, $scope.coloring);
     $scope.binning = MarkerMaker.getBinning();
     $scope.layers.overlays = MarkerMaker.getOverlays();
     $scope.markers = MarkerMaker.getMarkers();
     updateParams();
   };
-  
 
-  
-
+  // Makes modal for sharing the link with all the parameters
   $scope.shareLink = function(e){
-    $scope.link = $window.location.origin + $window.location.pathname + params + $scope.extraParams;
+    $scope.link = $window.location.origin + $window.location.pathname + params;
+    $scope.link = $scope.extraParams ? $scope.link + $scope.extraParams : $scope.link;
     $mdDialog.show({
       controller: DialogController,
       contentElement: '#shareLink',
@@ -710,7 +703,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
       targetEvent: e, 
       clickOutsideToClose: true
     });
-  }
+  };
 
 }]);
 

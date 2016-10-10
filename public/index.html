@@ -22,33 +22,33 @@
 <md-content layout-padding flex-gt-sm="50" flex-sm="75" class="md-whiteframe-6dp">
    <h1 class="md-display-2">
       <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>Mustangular V1</h1>
-   <form name="mainForm" ng-submit="mainForm.$valid && submit(snclq)" autocomplete="on">
+   <form name="mainForm" ng-submit="mainForm.$valid && submit(params)" autocomplete="on">
       <md-input-container class="md-block" >
          <label> Network </label>
-         <input ng-model="snclq.net" ng-change="snclq.net = snclq.net.toUpperCase();"> 
+         <input ng-model="params.net" ng-change="params.net = params.net.toUpperCase();"> 
       </md-input-container >
       <md-input-container class="md-block">
          <label> Channel </label>
-         <input ng-model="snclq.chan" ng-change="snclq.chan = snclq.chan.toUpperCase();">
+         <input ng-model="params.chan" ng-change="params.chan = params.chan.toUpperCase();">
       </md-input-container>
       <md-input-container class="md-block">
          <label> Station </label>
-         <input ng-model="snclq.sta" ng-change="snclq.sta = snclq.sta.toUpperCase();">
+         <input ng-model="params.sta" ng-change="params.sta = params.sta.toUpperCase();">
       </md-input-container>
       <md-input-container class="md-block">
          <label> Location </label>
-         <input ng-model="snclq.loc">
+         <input ng-model="params.loc">
       </md-input-container>
       <md-input-container class="md-block">
          <label> Quality </label>
-         <input ng-model="snclq.qual" ng-change="snclq.qual = snclq.qual.toUpperCase();">
+         <input ng-model="params.qual" ng-change="params.qual = params.qual.toUpperCase();">
       </md-input-container>
-         <md-datepicker ng-model="snclq.timewindow.start" md-placeholder="Start date" md-max-date="maxDate" required></md-datepicker>
-         <md-datepicker ng-model="snclq.timewindow.stop" md-placeholder="End date" ng-change="fixTime(snclq.timewindow.stop)" md-max-date="maxDate" required></md-datepicker>
+         <md-datepicker ng-model="params.timewindow.start" md-placeholder="Start date" md-max-date="maxDate" required></md-datepicker>
+         <md-datepicker ng-model="params.timewindow.stop" md-placeholder="End date" ng-change="fixTime(params.timewindow.stop)" md-max-date="maxDate" required></md-datepicker>
          <label>MM/DD/YYYY</label>
       <md-input-container class="md-block">
          <label>Metric</label>
-         <md-select ng-model="snclq.metric" id="metric" required>
+         <md-select ng-model="params.metric" id="metric" required>
             <md-option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</md-option>
          </md-select>
       </md-input-container>  
