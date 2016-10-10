@@ -95,7 +95,7 @@ md-checkbox.md-checked.layer-toggle .md-icon {
   border-bottom: 1px solid black;
 }
 
-.toggle-all .icon-key{
+.toggle-all .icon-key {
   background-color: #7D26CD;
 }
 
@@ -108,12 +108,12 @@ tr[disabled="disabled"] {
   display:inline-block;
 }
 
-.tooltip md-icon svg{
+.tooltip md-icon svg {
     height:18px;
     width: 18px;
 }
 
-.values p{
+.values p {
   margin: 0px;
   display: inline;
 }

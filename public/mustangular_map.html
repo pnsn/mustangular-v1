@@ -121,7 +121,7 @@
       <table>
          
          <tr><th>On/off</th><th>Range</th><th>Count</th></tr>
-         <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}" ng-if="bin.count != 0 && bin.position != 2">
+         <tr ng-repeat="bin in binning.bins" ng-disabled="{{bin.count == 0}}" ng-if="bin.position < 2 || (bin.position == 2 && bin.count > 0)">
             <td>
                <div class="icon-key"  style='background-color:#{{bin.color}}'>
                   <md-checkbox ng-show="{{bin.count > 0}}" class="layer-toggle" aria-label="toggle layer" ng-checked="layerVisibility(bin.name, bin.count)" ng-click="toggleLayer(bin.name)"></md-checkbox>

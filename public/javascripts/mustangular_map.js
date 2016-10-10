@@ -36,7 +36,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
       }
     }).error(function(response){
       deferred.reject({
-        message: response.data ? response.data : "Unknown error.",
+        message: response && response.data ? response.data : "Unknown error.",
         inProgress: false
       });
     });
@@ -673,6 +673,8 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     "&binmax=" + $scope.binning.max +
     "&bincount=" + $scope.binning.count + 
     "&coloring=" + $scope.coloring; 
+    
+    $scope.extraParams = $scope.extraParams.replace(/[^&]*=undefined*&?/gm, "");
   };
   
   // On change of bin max, min, or count, update the bins, markers, and layers
