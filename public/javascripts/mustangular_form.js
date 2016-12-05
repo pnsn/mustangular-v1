@@ -8,7 +8,7 @@ formApp.provider('metricsProvider', function(){
 
   //Make http request
   var findMetrics = function($http){
-    $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=angular.callbacks._0", {cache:true})
+    $http.jsonp("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=angular.callbacks._0&nodata=200", {cache:true})
       .success(function(data, status, headers, config){
         parseMetrics(data);
       })
