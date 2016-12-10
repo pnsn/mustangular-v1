@@ -13,7 +13,7 @@ formApp.provider('metricsProvider', function(){
         parseMetrics(data);
       })
       .error(function(data, status, headers, config){
-        //TODO: Handle error
+        alert("MUSTANG Error: " + status + " - No metrics list available.");
       });
   };
   

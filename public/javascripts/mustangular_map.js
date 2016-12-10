@@ -612,7 +612,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
       $scope.status.inProgress = metricData.inProgress ? metricData.inProgress : $scope.status.inProgress;    
       
       // Gets the information about the metric from MUSTANG
-      DataFinder.getMetricInfo("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&callback=JSON_CALLBACK&metric=").then(function(metricInfo){
+      DataFinder.getMetricInfo("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&nodata=200&callback=JSON_CALLBACK&metric=").then(function(metricInfo){
         $scope.metricInfo = metricInfo;
       });
     
