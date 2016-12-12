@@ -24,7 +24,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
         });
       } else if(responseData.length == 0){
         deferred.reject({
-          message:"Error: No data returned.",
+          message:"No data returned.",
           inProgress:false
         });
       } else {        
@@ -36,7 +36,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
       }
     }).error(function(response){
       deferred.reject({
-        message: response && response.data ? response.data : "Unknown error.",
+        message: response && response.data ? response.data : "Unknown error.", //NODATA=200
         inProgress: false
       });
     });
@@ -605,7 +605,7 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
   };
   
   // Gets station metrics from MUSTANG
-  DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&output=jsonp&callback=JSON_CALLBACK")
+  DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&nodata=200&output=jsonp&callback=JSON_CALLBACK")
     // If it successfully gets the data
     .then(function(metricData){
       $scope.status.message = metricData.message;
