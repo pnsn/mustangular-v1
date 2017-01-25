@@ -36,7 +36,7 @@ mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
       }
     }).error(function(response){
       deferred.reject({
-        message: response && response.data ? response.data : "Unknown error.", //NODATA=200
+        message: response && response.data ? response.data : "Unknown error, please check query parameters.", //NODATA=200
         inProgress: false
       });
     });

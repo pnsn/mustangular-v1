@@ -1,6 +1,6 @@
 mustangular
 ===========
-An Angular.js application that displays station metrics from the ISIS MUSTANG service on a leaflet map. 
+An Angular.js application that displays station metrics from the IRIS MUSTANG service on a leaflet map. 
 
 
 General Information:
