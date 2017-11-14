@@ -4,7 +4,7 @@ var mapApp = angular.module('mapApp', ['leaflet-directive', 'ngSanitize', 'ngMes
 // Gets the list of metrics from mustang/metrics for metric dropdown
 mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   var _metricName = "";
-  
+
   // Returns promise with MUSTANG data or error information
   this.getMetricData = function(query){
     var deferred = $q.defer();
@@ -118,7 +118,7 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
   // Returns the combined datasets as one object
   this.getStations = function(stationData, metricData){
     stationProcessor(stationData);
-    metricProcessor(metricData);
+    metricProcessor(metricData);  // produces _combinedData
     return medianFinder(_combinedData);
   };
   
@@ -153,6 +153,8 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
   // Combines the multiple values for each station and channel into one station object
   // that has multiple channels with multple values for each channel
   // Adds latitude and longitude to each object
+  // REC - JSON output change from 'chan' to 'cha' caused problems here until metric.chan
+  // was changed to metric.cha -- Nov 13, 2017
   var metricProcessor = function(data){
     for(var i = 0; i < data.length; i++){
       var key = data[i].net+"_"+data[i].sta;
@@ -164,10 +166,10 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
         metric.elev = sta.elevation;
 
         if(_combinedData[key]){
-          if(_combinedData[key].chans[metric.chan]){
-            _combinedData[key].chans[metric.chan].push(metric.value); //need the median value
+          if(_combinedData[key].chans[metric.cha]){
+            _combinedData[key].chans[metric.cha].push(metric.value); //need the median value
           } else {
-            _combinedData[key].chans[metric.chan] = [metric.value];
+            _combinedData[key].chans[metric.cha] = [metric.value];
           }
         } else{
           _combinedData[key] = { 
@@ -179,7 +181,7 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
           };
           
           _latlngs.push([parseFloat(metric.lat), parseFloat(metric.lng)]);
-          _combinedData[key].chans[metric.chan] = [metric.value];
+          _combinedData[key].chans[metric.cha] = [metric.value];
         }
       } else {
         //put it in a table
@@ -198,12 +200,13 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       var maxValue = Number.MIN_SAFE_INTEGER;
       var minValue = Number.MAX_SAFE_INTEGER;
       var extremeValue = 0;
+
       angular.forEach(station.chans, function(channel, key){
         var orderedChans = $filter('orderBy')(channel); 
         
         //Find the middle index value
         var mid = orderedChans.length/2-.5;
-        
+
         //Default to 0
         var median = 0;
         
@@ -603,25 +606,25 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     $scope.status.message = response.message;
     $scope.status.inProgress = response.inProgress;
   };
-  
+
   // Gets station metrics from MUSTANG
-  DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&nodata=200&output=jsonp&callback=JSON_CALLBACK")
+  DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&nodata=404&output=jsonp&callback=JSON_CALLBACK")
     // If it successfully gets the data
     .then(function(metricData){
       $scope.status.message = metricData.message;
       $scope.status.inProgress = metricData.inProgress ? metricData.inProgress : $scope.status.inProgress;    
       
       // Gets the information about the metric from MUSTANG
-      DataFinder.getMetricInfo("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&nodata=200&callback=JSON_CALLBACK&metric=").then(function(metricInfo){
+      DataFinder.getMetricInfo("http://service.iris.edu/mustang/metrics/1/query?output=jsonp&nodata=404&callback=JSON_CALLBACK&metric=").then(function(metricInfo){
         $scope.metricInfo = metricInfo;
       });
     
       // Gets the coordinates of the stations from IRIS FDSNWS
-      DataFinder.getStationData("http://service.iris.edu/fdsnws/station/1/query"+params+"&format=text")
+      DataFinder.getStationData("http://service.iris.edu/fdsnws/station/1/query"+params+"&format=text&nodata=404")
         //If it successfully gets the data
         .then(function(stationData){
           $scope.status.hasData = stationData.hasData;
-          
+
           // Merge the station metrics and the station coordinates into one
           // Includes calculation of median for each station
           var stations = DataProcessor.getStations(stationData.data, metricData.data);
@@ -724,6 +727,7 @@ function DialogController($scope, $mdDialog) {
 
 // Disables default debugging output on angular leaflet
 mapApp.config(['$logProvider', '$locationProvider',function($logProvider, $locationProvider){
+// REC
   $logProvider.debugEnabled(false);
   
   $locationProvider.html5Mode({

@@ -36,6 +36,7 @@ html, body {
 
 h1.md-display-2{
   margin: 10px 0px;
+  background-color: #66ccff
 }
 
 .leaflet-popup ul{
