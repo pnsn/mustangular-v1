@@ -1,6 +1,6 @@
 MUSTANGULAR - by PNSN 2016 - found at github: pnsn/mustangular
 
-installed by Robert Casey, IRIS - Mary 9 2017
+installed by Robert Casey, IRIS - Mar 9, 2017
 
 README INSTRUCTIONS FOR USE
 --------------------------------------------------------------------------------------------------------------------
