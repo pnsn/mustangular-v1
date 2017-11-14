@@ -5,9 +5,6 @@ var mapApp = angular.module('mapApp', ['leaflet-directive', 'ngSanitize', 'ngMes
 mapApp.service('DataFinder', ["$http", "$q", function($http, $q){
   var _metricName = "";
 
-// REC
-	console.log("DEBUG 3");
-  
   // Returns promise with MUSTANG data or error information
   this.getMetricData = function(query){
     var deferred = $q.defer();
@@ -168,9 +165,6 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
         metric.lng = sta.longitude;
         metric.elev = sta.elevation;
 
-	// REC
-	console.log("DEBUG: metric.cha = " + metric.cha);
-
         if(_combinedData[key]){
           if(_combinedData[key].chans[metric.cha]){
             _combinedData[key].chans[metric.cha].push(metric.value); //need the median value
@@ -207,18 +201,12 @@ mapApp.service('DataProcessor', ["$filter", function($filter){
       var minValue = Number.MAX_SAFE_INTEGER;
       var extremeValue = 0;
 
-	// REC
-	console.log("DEBUG: station.chans length = " + station.chans.length);
-
       angular.forEach(station.chans, function(channel, key){
         var orderedChans = $filter('orderBy')(channel); 
         
         //Find the middle index value
         var mid = orderedChans.length/2-.5;
 
-	// REC
-	console.log("DEBUG: channel = " + channel);
-        
         //Default to 0
         var median = 0;
         
@@ -619,8 +607,6 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
     $scope.status.inProgress = response.inProgress;
   };
 
-  console.log("DEBUG 2");
-
   // Gets station metrics from MUSTANG
   DataFinder.getMetricData("http://service.iris.edu/mustang/measurements/1/query"+ params +"&nodata=404&output=jsonp&callback=JSON_CALLBACK")
     // If it successfully gets the data
@@ -639,10 +625,6 @@ mapApp.controller("MapCtrl", ["$scope", "$window", "$mdDialog", "DataFinder", "D
         .then(function(stationData){
           $scope.status.hasData = stationData.hasData;
 
-	  // REC
-          console.log("DEBUG 1");
-	  console.log("hasData = " + stationData.hasData);
-          
           // Merge the station metrics and the station coordinates into one
           // Includes calculation of median for each station
           var stations = DataProcessor.getStations(stationData.data, metricData.data);
