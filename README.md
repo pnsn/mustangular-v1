@@ -1,6 +1,6 @@
-MUSTANGULAR - by PNSN 2016
+MUSTANGULAR
 ===========
-An Angular.js application that displays station metrics from the IRIS MUSTANG service on a leaflet map.
+An Angular.js application that displays station metrics from the IRIS MUSTANG service on a leaflet map.  (Created by Pacific Northwest Seismic Network - PNSN - 2016)
 
 General Information:
 --------------------
