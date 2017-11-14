@@ -21,7 +21,11 @@
 
 <md-content layout-padding flex-gt-sm="50" flex-sm="75" class="md-whiteframe-6dp">
    <h1 class="md-display-2">
-      <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>Mustangular V1</h1>
+      <md-icon md-svg-icon="images/mustangular_logo.svg" aria-label="mustangular"></md-icon>
+	MUSTANGular v1.0</h1>
+   <h3 align=right>An Angular.js application that displays station metrics from the IRIS MUSTANG service on a leaflet map.<br>
+		<a href="https://github.com/pnsn/mustangular#mustangular">More info...</a></h3>
+   <h3 align=left>Enter your query below:</h3>
    <form name="mainForm" ng-submit="mainForm.$valid && submit(params)" autocomplete="on">
       <md-input-container class="md-block" >
          <label> Network </label>
@@ -52,8 +56,7 @@
             <md-option ng-repeat="x in metrics" value="{{x.metric}}">{{x.title}}</md-option>
          </md-select>
       </md-input-container>  
-      <md-button type="submit" class="md-raised md-primary">Submit</md-button>
-      <p>Unspecified values will act as wildcards.</p>
+      <md-button type="submit" class="md-raised md-primary">Get Metrics</md-button>&nbsp;&nbsp;Note: Unspecified values will act as wildcards.
    </form>
 </md-content>
 
